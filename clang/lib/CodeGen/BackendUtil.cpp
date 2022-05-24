@@ -86,7 +86,6 @@
 #include "llvm/Transforms/Utils/EntryExitInstrumenter.h"
 #include "llvm/Transforms/Utils/NameAnonGlobals.h"
 #include "llvm/Transforms/Utils/SymbolRewriter.h"
-#include "llvm/Transforms/Obfuscation/ObfuscatePlugin.h"
 #include <memory>
 using namespace clang;
 using namespace llvm;
@@ -140,7 +139,7 @@ class EmitAssemblyHelper {
   std::unique_ptr<llvm::ToolOutputFile> openOutputFile(StringRef Path) {
     std::error_code EC;
     auto F = std::make_unique<llvm::ToolOutputFile>(Path, EC,
-                                                     llvm::sys::fs::OF_None);
+                                                    llvm::sys::fs::OF_None);
     if (EC) {
       Diags.Report(diag::err_fe_unable_to_open_output) << Path << EC.message();
       F.reset();
@@ -310,7 +309,7 @@ static void addKernelAddressSanitizerPasses(const PassManagerBuilder &Builder,
 }
 
 static void addHWAddressSanitizerPasses(const PassManagerBuilder &Builder,
-                                            legacy::PassManagerBase &PM) {
+                                        legacy::PassManagerBase &PM) {
   const PassManagerBuilderWrapper &BuilderWrapper =
       static_cast<const PassManagerBuilderWrapper &>(Builder);
   const CodeGenOptions &CGOpts = BuilderWrapper.getCGOpts();
@@ -398,12 +397,12 @@ static TargetLibraryInfoImpl *createTLII(llvm::Triple &TargetTriple,
     break;
   case CodeGenOptions::LIBMVEC:
     switch(TargetTriple.getArch()) {
-      default:
-        break;
-      case llvm::Triple::x86_64:
-        TLII->addVectorizableFunctionsFromVecLib
-                (TargetLibraryInfoImpl::LIBMVEC_X86);
-        break;
+    default:
+      break;
+    case llvm::Triple::x86_64:
+      TLII->addVectorizableFunctionsFromVecLib
+          (TargetLibraryInfoImpl::LIBMVEC_X86);
+      break;
     }
     break;
   case CodeGenOptions::MASSV:
@@ -1303,10 +1302,6 @@ void EmitAssemblyHelper::EmitAssemblyWithNewPassManager(
           << PluginFN << toString(PassPlugin.takeError());
     }
   }
-
-  // register obfuscate plugin
-  PB.registerPipelineStartEPCallback(obfuscatePluginCallback);
-
 #define HANDLE_EXTENSION(Ext)                                                  \
   get##Ext##PluginInfo().RegisterPassBuilderCallbacks(PB);
 #include "llvm/Support/Extension.def"
@@ -1634,7 +1629,7 @@ void clang::EmitBackendOutput(DiagnosticsEngine &Diags,
     if (!IndexOrErr) {
       logAllUnhandledErrors(IndexOrErr.takeError(), errs(),
                             "Error loading index file '" +
-                            CGOpts.ThinLTOIndexFile + "': ");
+                                CGOpts.ThinLTOIndexFile + "': ");
       return;
     }
     std::unique_ptr<ModuleSummaryIndex> CombinedIndex = std::move(*IndexOrErr);

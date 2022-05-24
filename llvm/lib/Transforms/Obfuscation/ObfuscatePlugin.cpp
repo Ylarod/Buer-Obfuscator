@@ -19,16 +19,19 @@ void obfuscatePluginCallback(llvm::ModulePassManager &PM,
   PM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
 }
 
-namespace {
-
-/* New PM Registration */
-extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
-llvmGetPassPluginInfo() {
-  errs() << "llvmGetPassPluginInfo\n";
+llvm::PassPluginLibraryInfo getLLVMObfuscationPluginInfo(){
   return {LLVM_PLUGIN_API_VERSION, "LLVMObfuscation", LLVM_VERSION_STRING,
           [](PassBuilder &PB) {
             PB.registerPipelineStartEPCallback(obfuscatePluginCallback);
           }};
+}
+
+namespace {
+/* New PM Registration */
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo() {
+  errs() << "llvmGetPassPluginInfo\n";
+  return getLLVMObfuscationPluginInfo();
 }
 
 } // namespace
