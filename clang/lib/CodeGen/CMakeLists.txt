@@ -96,4 +96,5 @@ add_clang_library(clangCodeGen
   clangFrontend
   clangLex
   clangSerialization
+  LLVMObfuscation
   )

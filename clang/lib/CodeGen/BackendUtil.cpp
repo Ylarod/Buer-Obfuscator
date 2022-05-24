@@ -86,6 +86,7 @@
 #include "llvm/Transforms/Utils/EntryExitInstrumenter.h"
 #include "llvm/Transforms/Utils/NameAnonGlobals.h"
 #include "llvm/Transforms/Utils/SymbolRewriter.h"
+#include "llvm/Transforms/Obfuscation/ObfuscatePlugin.h"
 #include <memory>
 using namespace clang;
 using namespace llvm;
@@ -1302,6 +1303,10 @@ void EmitAssemblyHelper::EmitAssemblyWithNewPassManager(
           << PluginFN << toString(PassPlugin.takeError());
     }
   }
+
+  // register obfuscate plugin
+  PB.registerPipelineStartEPCallback(obfuscatePluginCallback);
+
 #define HANDLE_EXTENSION(Ext)                                                  \
   get##Ext##PluginInfo().RegisterPassBuilderCallbacks(PB);
 #include "llvm/Support/Extension.def"
