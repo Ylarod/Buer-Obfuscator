@@ -25,7 +25,7 @@
 /*/CMakeUserPresets.json
 
 # Nested build directory
-/build*
+/build
 cmake-build-debug/
 
 #==============================================================================#
