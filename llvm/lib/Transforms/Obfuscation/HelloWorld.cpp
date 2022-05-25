@@ -7,16 +7,16 @@
 
 using namespace llvm;
 
-PreservedAnalyses HelloWorld::run(Module &M, ModuleAnalysisManager &) {
+PreservedAnalyses HelloWorld::run(Module &M, ModuleAnalysisManager &) const {
   if (enable) {
     errs() << "Module name is " << M.getName() << "!\n";
   }
   return PreservedAnalyses::all();
 }
 
-PreservedAnalyses HelloWorld::run(Function &F, FunctionAnalysisManager &) {
+PreservedAnalyses HelloWorld::run(Function &F, FunctionAnalysisManager &) const {
   if (enable) {
     errs() << "Function name is " << F.getName() << "!\n";
   }
-  return PreservedAnalyses();
+  return PreservedAnalyses::all();
 }

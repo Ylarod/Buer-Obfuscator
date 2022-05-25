@@ -14,11 +14,11 @@ class HelloWorld : public PassInfoMixin<HelloWorld> {
   bool enable;
 
 public:
-  HelloWorld(bool enable = true) : enable(enable) {}
+  explicit HelloWorld(bool enable = true) : enable(enable) {}
 
-  PreservedAnalyses run(Module &M, ModuleAnalysisManager &);
+  PreservedAnalyses run(Module &M, ModuleAnalysisManager &) const;
 
-  PreservedAnalyses run(Function &F, FunctionAnalysisManager &);
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &) const;
 };
 
 } // namespace llvm
