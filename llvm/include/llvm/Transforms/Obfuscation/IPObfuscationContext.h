@@ -6,6 +6,8 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
+#include "llvm/Passes/PassBuilder.h"
+#include "llvm/Passes/PassPlugin.h"
 #include <set>
 
 // Namespace
@@ -14,9 +16,8 @@ class ModulePass;
 class FunctionPass;
 class PassRegistry;
 
-struct IPObfuscationContext : public ModulePass {
-  static char ID;
-  bool flag;
+struct IPObfuscationContext : public PassInfoMixin<IPObfuscationContext> {
+  bool enable;
 
   /* Inter-procedural obfuscation secret info of a function */
   struct IPOInfo {
@@ -33,25 +34,22 @@ struct IPObfuscationContext : public ModulePass {
   };
 
   std::set<Function *> LocalFunctions;
-  SmallVector<IPOInfo *, 16> IPOInfoList;
+  SmallVector<IPOInfo , 16> IPOInfoList;
   std::map<Function *, IPOInfo *> IPOInfoMap;
   std::vector<AllocaInst *> DeadSlots;
 
-  IPObfuscationContext() : ModulePass(ID) { this->flag = false; }
-  IPObfuscationContext(bool flag) : ModulePass(ID) { this->flag = flag; }
+  IPObfuscationContext() : enable(false) {}
+  explicit IPObfuscationContext(bool enable) : enable(enable) {}
 
   void SurveyFunction(Function &F);
   Function *InsertSecretArgument(Function *F);
   void computeCallSiteSecretArgument(Function *F);
-  IPOInfo *AllocaSecretSlot(Function &F);
+  static IPOInfo AllocaSecretSlot(Function &F);
   const IPOInfo *getIPOInfo(Function *F);
 
-  bool runOnModule(Module &M) override;
-  bool doFinalization(Module &) override;
+  PreservedAnalyses run(Module &M, ModuleAnalysisManager &);
 };
 
-IPObfuscationContext *createIPObfuscationContextPass(bool flag);
-void initializeIPObfuscationContextPass(PassRegistry &Registry);
 }
 
 #endif
