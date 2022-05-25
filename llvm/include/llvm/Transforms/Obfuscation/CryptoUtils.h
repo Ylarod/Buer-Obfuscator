@@ -220,7 +220,7 @@ public:
   char *get_seed();
   void get_bytes(char *buffer, const int len);
   char get_char();
-  void prng_seed(const std::string seed);
+  void prng_seed(const std::string& seed);
 
   // Returns a uniformly distributed 8-bit value
   uint8_t get_uint8_t();
@@ -232,9 +232,9 @@ public:
   uint64_t get_uint64_t();
 
   // Scramble a 32-bit value depending on a 128-bit value
-  unsigned scramble32(const unsigned in, const char key[16]);
+  static unsigned scramble32(const unsigned in, const char key[16]);
 
-  int sha256(const char *msg, unsigned char *hash);
+  static int sha256(const char *msg, unsigned char *hash);
 
 private:
   uint32_t ks[44];
@@ -251,15 +251,15 @@ private:
     unsigned char buf[64];
   } sha256_state;
 
-  void aes_compute_ks(uint32_t *ks, const char *k);
-  void aes_encrypt(char *out, const char *in, const uint32_t *ks);
+  static void aes_compute_ks(uint32_t *ks, const char *k);
+  static void aes_encrypt(char *out, const char *in, const uint32_t *ks);
   void prng_seed();
   void inc_ctr();
   void populate_pool();
-  int sha256_done(sha256_state *md, unsigned char *out);
-  int sha256_init(sha256_state *md);
-  static int sha256_compress(sha256_state *md, unsigned char *buf);
-  int sha256_process(sha256_state *md, const unsigned char *in,
+  static int sha256_done(sha256_state *md, unsigned char *out);
+  static int sha256_init(sha256_state *md);
+  static int sha256_compress(sha256_state *md, const unsigned char *buf);
+  static int sha256_process(sha256_state *md, const unsigned char *in,
                      unsigned long inlen);
 };
 }
