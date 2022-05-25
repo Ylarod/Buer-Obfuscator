@@ -17,7 +17,7 @@
 
 using namespace llvm;
 
-cl::opt<bool> RunHelloWorld("hello", cl::init(true),
+cl::opt<bool> RunHelloWorld("hello", cl::init(false),
                             cl::desc("Enable the HelloWorld pass"));
 
 cl::opt<bool>

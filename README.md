@@ -4,6 +4,11 @@ A WIP Obfuscator based on android clang14, ndk 24.0.8215888
 
 The project name has not been decided yet, the repo name may be changed in the future.
 
+## Progress
+
+1. port goron
+   1. irobf-cse works fine
+   2. irobf-indbr, irobf-icall, irobf-indgv will cause a linker error
 
 
 ## Environment
