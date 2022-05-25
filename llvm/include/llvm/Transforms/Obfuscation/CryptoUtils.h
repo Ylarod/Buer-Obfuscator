@@ -17,16 +17,13 @@
 #ifndef LLVM_CryptoUtils_H
 #define LLVM_CryptoUtils_H
 
-#include "llvm/Support/ManagedStatic.h"
-
-#include <stdint.h>
+#include <cstdint>
 #include <cstdio>
 #include <string>
 
 namespace llvm {
 
 class CryptoUtils;
-extern ManagedStatic<CryptoUtils> cryptoutils;
 
 #define BYTE(x, n) (((x) >> (8 * (n))) & 0xFF)
 
@@ -54,7 +51,7 @@ extern ManagedStatic<CryptoUtils> cryptoutils;
 #define ENDIAN_64BITWORD
 #define UNALIGNED
 
-#elif(defined(__R5900) || defined(R5900) || defined(__R5900__)) &&             \
+#elif (defined(__R5900) || defined(R5900) || defined(__R5900__)) &&            \
     (defined(_mips) || defined(__mips__) || defined(mips))
 
 #ifndef ENDIAN_LITTLE
@@ -155,7 +152,7 @@ extern ManagedStatic<CryptoUtils> cryptoutils;
     (x) = ((uint32_t)((y)[3] & 0xFF) << 24) |                                  \
           ((uint32_t)((y)[2] & 0xFF) << 16) |                                  \
           ((uint32_t)((y)[1] & 0xFF) << 8) | ((uint32_t)((y)[0] & 0xFF) << 0); \
-}
+  }
 
 #define LOAD64H(x, y)                                                          \
   {                                                                            \
@@ -191,10 +188,10 @@ extern ManagedStatic<CryptoUtils> cryptoutils;
 
 // SHA256
 /* Various logical functions */
-#define Ch(x, y, z) (z ^ (x &(y ^ z)))
-#define Maj(x, y, z) (((x | y) & z) | (x &y))
+#define Ch(x, y, z) ((z) ^ ((x) & ((y) ^ (z))))
+#define Maj(x, y, z) ((((x) | (y)) & (z)) | ((x) & (y)))
 #define S(x, n) RORc((x), (n))
-#define R(x, n) (((x) & 0xFFFFFFFFUL) >> (n))
+#define R(x, n) (((x)&0xFFFFFFFFUL) >> (n))
 #define Sigma0(x) (S(x, 2) ^ S(x, 13) ^ S(x, 22))
 #define Sigma1(x) (S(x, 6) ^ S(x, 11) ^ S(x, 25))
 #define Gamma0(x) (S(x, 7) ^ S(x, 18) ^ R(x, 3))
@@ -202,14 +199,14 @@ extern ManagedStatic<CryptoUtils> cryptoutils;
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 #define RND(a, b, c, d, e, f, g, h, i, ki)                                     \
-  t0 = h + Sigma1(e) + Ch(e, f, g) + ki + W[i];                                \
+  t0 = (h) + Sigma1(e) + Ch(e, f, g) + (ki) + W[i];                            \
   t1 = Sigma0(a) + Maj(a, b, c);                                               \
-  d += t0;                                                                     \
-  h = t0 + t1;
+  (d) += t0;                                                                   \
+  (h) = t0 + t1;
 
 #define RORc(x, y)                                                             \
-  (((((unsigned long)(x) & 0xFFFFFFFFUL) >> (unsigned long)((y) & 31)) |       \
-    ((unsigned long)(x) << (unsigned long)(32 - ((y) & 31)))) &                \
+  (((((unsigned long)(x)&0xFFFFFFFFUL) >> (unsigned long)((y)&31)) |           \
+    ((unsigned long)(x) << (unsigned long)(32 - ((y)&31)))) &                  \
    0xFFFFFFFFUL)
 
 class CryptoUtils {
@@ -218,21 +215,21 @@ public:
   ~CryptoUtils();
 
   char *get_seed();
-  void get_bytes(char *buffer, const int len);
+  void get_bytes(char *buffer, int len);
   char get_char();
-  void prng_seed(const std::string& seed);
+  void prng_seed(const std::string &seed);
 
   // Returns a uniformly distributed 8-bit value
   uint8_t get_uint8_t();
   // Returns a uniformly distributed 32-bit value
   uint32_t get_uint32_t();
   // Returns an integer uniformly distributed on [0, max[
-  uint32_t get_range(const uint32_t max);
+  uint32_t get_range(uint32_t max);
   // Returns a uniformly distributed 64-bit value
   uint64_t get_uint64_t();
 
   // Scramble a 32-bit value depending on a 128-bit value
-  static unsigned scramble32(const unsigned in, const char key[16]);
+  static unsigned scramble32(unsigned in, const char key[16]);
 
   static int sha256(const char *msg, unsigned char *hash);
 
@@ -260,9 +257,8 @@ private:
   static int sha256_init(sha256_state *md);
   static int sha256_compress(sha256_state *md, const unsigned char *buf);
   static int sha256_process(sha256_state *md, const unsigned char *in,
-                     unsigned long inlen);
+                            unsigned long inlen);
 };
-}
+} // namespace llvm
 
 #endif // LLVM_CryptoUtils_H
-

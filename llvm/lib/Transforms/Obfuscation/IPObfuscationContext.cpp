@@ -1,7 +1,7 @@
 #include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
 #include "llvm/Transforms/Obfuscation/Utils.h"
 #include "llvm/IR/IRBuilder.h"
-#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
+
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/IR/AbstractCallSite.h"
@@ -213,8 +213,6 @@ IPObfuscationContext::IPOInfo IPObfuscationContext::AllocaSecretSlot(Function &F
   CallerSlot->setAlignment(Align(4));
   AllocaInst *CalleeSlot = IRB.CreateAlloca(I32Ty, nullptr, "CalleeSlot");
   CalleeSlot->setAlignment(Align(4));
-
-  CryptoUtils RandomEngine;
   uint32_t V = RandomEngine.get_uint32_t();
   ConstantInt *SecretCI = ConstantInt::get(I32Ty, V, false);
   IRB.CreateStore(SecretCI, CallerSlot);
@@ -246,5 +244,9 @@ void IPObfuscationContext::computeCallSiteSecretArgument(Function *F) {
     Value *CalleeSecret = IRB.CreateSub(CallerSecret, X);
     IRB.CreateStore(CalleeSecret, CallerIPOInfo->CalleeSlot);
   }
+}
+IPObfuscationContext::IPObfuscationContext(bool enable, const std::string& seed) {
+  this->enable = enable;
+  RandomEngine.prng_seed(seed);
 }
 }

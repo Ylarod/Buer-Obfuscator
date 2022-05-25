@@ -8,6 +8,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
+#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
 #include <set>
 
 // Namespace
@@ -33,6 +34,7 @@ struct IPObfuscationContext : public PassInfoMixin<IPObfuscationContext> {
     ConstantInt *SecretCI;
   };
 
+  CryptoUtils RandomEngine;
   std::set<Function *> LocalFunctions;
   SmallVector<IPOInfo , 16> IPOInfoList;
   std::map<Function *, IPOInfo *> IPOInfoMap;
@@ -40,11 +42,12 @@ struct IPObfuscationContext : public PassInfoMixin<IPObfuscationContext> {
 
   IPObfuscationContext() : enable(false) {}
   explicit IPObfuscationContext(bool enable) : enable(enable) {}
+  IPObfuscationContext(bool enable, const std::string& seed);
 
   void SurveyFunction(Function &F);
   Function *InsertSecretArgument(Function *F);
   void computeCallSiteSecretArgument(Function *F);
-  static IPOInfo AllocaSecretSlot(Function &F);
+  IPOInfo AllocaSecretSlot(Function &F);
   const IPOInfo *getIPOInfo(Function *F);
 
   PreservedAnalyses run(Module &M, ModuleAnalysisManager &);

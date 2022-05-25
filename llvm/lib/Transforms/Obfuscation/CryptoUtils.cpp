@@ -42,10 +42,6 @@ STATISTIC(statsAESEncrypt, "h. Number of calls to aes_encrypt ()");
 
 using namespace llvm;
 
-namespace llvm {
-ManagedStatic<CryptoUtils> cryptoutils;
-}
-
 const uint32_t AES_RCON[10] = {
     0x01000000UL, 0x02000000UL, 0x04000000UL, 0x08000000UL, 0x10000000UL,
     0x20000000UL, 0x40000000UL, 0x80000000UL, 0x1b000000UL, 0x36000000UL};

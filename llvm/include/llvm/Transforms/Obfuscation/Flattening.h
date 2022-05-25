@@ -14,12 +14,31 @@
 #ifndef _FLATTENING_INCLUDES_
 #define _FLATTENING_INCLUDES_
 
+#include "llvm/Pass.h"
+#include "llvm/Passes/PassBuilder.h"
+#include "llvm/Passes/PassPlugin.h"
+#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
+#include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
+#include "llvm/Transforms/Obfuscation/ObfuscationOptions.h"
+
 namespace llvm {
-class FunctionPass;
-struct IPObfuscationContext;
-struct ObfuscationOptions;
-FunctionPass *createFlatteningPass();
-FunctionPass *createFlatteningPass(bool flag, IPObfuscationContext *IPO, ObfuscationOptions *Options);
+
+struct Flattening : public PassInfoMixin<Flattening> {
+  bool flag;
+
+  IPObfuscationContext *IPO;
+  ObfuscationOptions *Options;
+  CryptoUtils RandomEngine;
+
+  Flattening(bool flag, IPObfuscationContext *IPO, ObfuscationOptions *Options) {
+    this->flag = flag;
+    this->IPO = IPO;
+    this->Options = Options;
+  }
+
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) const;
+  bool flatten(Function *f, FunctionAnalysisManager &AM) const;
+};
 }
 
 #endif

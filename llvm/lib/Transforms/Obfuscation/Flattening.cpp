@@ -26,45 +26,17 @@ using namespace llvm;
 // Stats
 STATISTIC(Flattened, "Functions flattened");
 
-namespace {
-struct Flattening : public FunctionPass {
-  static char ID;  // Pass identification, replacement for typeid
-  bool flag;
-
-  IPObfuscationContext *IPO;
-  ObfuscationOptions *Options;
-  CryptoUtils RandomEngine;
-
-  Flattening() : FunctionPass(ID) {
-    this->flag = false;
-    IPO = nullptr;
-    this->Options = nullptr;
-  }
-
-  Flattening(bool flag, IPObfuscationContext *IPO, ObfuscationOptions *Options) : FunctionPass(ID) {
-    this->flag = flag;
-    this->IPO = IPO;
-    this->Options = Options;
-  }
-
-  bool runOnFunction(Function &F);
-  bool flatten(Function *f);
-};
-}
-
-bool Flattening::runOnFunction(Function &F) {
+PreservedAnalyses Flattening::run(Function &F, FunctionAnalysisManager &AM) const{
   Function *tmp = &F;
-  // Do we obfuscate
   if (toObfuscate(flag, tmp, "fla")) {
-    if (flatten(tmp)) {
+    if (flatten(tmp, AM)) {
       ++Flattened;
     }
   }
-
-  return false;
+  return PreservedAnalyses::none();
 }
 
-bool Flattening::flatten(Function *f) {
+bool Flattening::flatten(Function *f, FunctionAnalysisManager &AM) const {
   vector<BasicBlock *> origBB;
   BasicBlock *loopEntry;
   BasicBlock *loopEnd;
@@ -74,20 +46,19 @@ bool Flattening::flatten(Function *f) {
 
   // SCRAMBLER
   char scrambling_key[16];
-  llvm::cryptoutils->get_bytes(scrambling_key, 16);
+  IPO->RandomEngine.get_bytes(scrambling_key, 16);
   // END OF SCRAMBLER
 
   // Lower switch
   LowerSwitchPass lower = LowerSwitchPass();
-  // TODO: pass FunctionAnalysisManager
-//  lower.run(*f, );
+  lower.run(*f, AM);
 
   // Save all original BB
-  for (Function::iterator i = f->begin(); i != f->end(); ++i) {
-    BasicBlock *tmp = &*i;
+  for (auto & i : *f) {
+    BasicBlock *tmp = &i;
     origBB.push_back(tmp);
 
-    BasicBlock *bb = &*i;
+    BasicBlock *bb = &i;
     if (isa<InvokeInst>(bb->getTerminator())) {
       return false;
     }
@@ -100,10 +71,7 @@ bool Flattening::flatten(Function *f) {
 
   LLVMContext &Ctx = f->getContext();
 
-  const IPObfuscationContext::IPOInfo *SecretInfo = nullptr;
-  if (IPO) {
-    SecretInfo = IPO->getIPOInfo(f);
-  }
+  const IPObfuscationContext::IPOInfo *SecretInfo = IPO->getIPOInfo(f);
 
   Value *MySecret;
   if (SecretInfo) {
@@ -120,12 +88,12 @@ bool Flattening::flatten(Function *f) {
   BasicBlock *insert = &*tmp;
 
   // If main begin with an if
-  BranchInst *br = NULL;
+  BranchInst *br = nullptr;
   if (isa<BranchInst>(insert->getTerminator())) {
     br = cast<BranchInst>(insert->getTerminator());
   }
 
-  if ((br != NULL && br->isConditional()) ||
+  if ((br != nullptr && br->isConditional()) ||
       insert->getTerminator()->getNumSuccessors() > 1) {
     BasicBlock::iterator i = insert->end();
 	--i;
@@ -146,7 +114,7 @@ bool Flattening::flatten(Function *f) {
       new AllocaInst(Type::getInt32Ty(f->getContext()), 0, "switchVar", insert);
   new StoreInst(
       ConstantInt::get(Type::getInt32Ty(f->getContext()),
-                       llvm::cryptoutils->scramble32(0, scrambling_key)),
+                       llvm::CryptoUtils::scramble32(0, scrambling_key)),
       switchVar, insert);
 
   // Create main loop
@@ -176,10 +144,8 @@ bool Flattening::flatten(Function *f) {
   BranchInst::Create(loopEntry, &*f->begin());
 
   // Put all BB in the switch
-  for (vector<BasicBlock *>::iterator b = origBB.begin(); b != origBB.end();
-       ++b) {
-    BasicBlock *i = *b;
-    ConstantInt *numCase = NULL;
+  for (auto i : origBB) {
+    ConstantInt *numCase;
 
     // Move the BB inside the switch (only visual, no code logic)
     i->moveBefore(loopEnd);
@@ -187,16 +153,14 @@ bool Flattening::flatten(Function *f) {
     // Add case to switch
     numCase = cast<ConstantInt>(ConstantInt::get(
         switchI->getCondition()->getType(),
-        llvm::cryptoutils->scramble32(switchI->getNumCases(), scrambling_key)));
+        llvm::CryptoUtils::scramble32(switchI->getNumCases(), scrambling_key)));
     switchI->addCase(numCase, i);
   }
 
   ConstantInt *Zero = ConstantInt::get(Type::getInt32Ty(Ctx), 0);
   // Recalculate switchVar
-  for (vector<BasicBlock *>::iterator b = origBB.begin(); b != origBB.end();
-       ++b) {
-    BasicBlock *i = *b;
-    ConstantInt *numCase = NULL;
+  for (auto i : origBB) {
+    ConstantInt *numCase;
 
     // Ret BB
     if (i->getTerminator()->getNumSuccessors() == 0) {
@@ -213,10 +177,10 @@ bool Flattening::flatten(Function *f) {
       numCase = switchI->findCaseDest(succ);
 
       // If next case == default case (switchDefault)
-      if (numCase == NULL) {
+      if (numCase == nullptr) {
         numCase = cast<ConstantInt>(
             ConstantInt::get(switchI->getCondition()->getType(),
-                             llvm::cryptoutils->scramble32(
+                             llvm::CryptoUtils::scramble32(
                                  switchI->getNumCases() - 1, scrambling_key)));
       }
 
@@ -245,17 +209,17 @@ bool Flattening::flatten(Function *f) {
           switchI->findCaseDest(i->getTerminator()->getSuccessor(1));
 
       // Check if next case == default case (switchDefault)
-      if (numCaseTrue == NULL) {
+      if (numCaseTrue == nullptr) {
         numCaseTrue = cast<ConstantInt>(
             ConstantInt::get(switchI->getCondition()->getType(),
-                             llvm::cryptoutils->scramble32(
+                             llvm::CryptoUtils::scramble32(
                                  switchI->getNumCases() - 1, scrambling_key)));
       }
 
-      if (numCaseFalse == NULL) {
+      if (numCaseFalse == nullptr) {
         numCaseFalse = cast<ConstantInt>(
             ConstantInt::get(switchI->getCondition()->getType(),
-                             llvm::cryptoutils->scramble32(
+                             llvm::CryptoUtils::scramble32(
                                  switchI->getNumCases() - 1, scrambling_key)));
       }
 
@@ -271,7 +235,7 @@ bool Flattening::flatten(Function *f) {
       Value *newNumCaseFalse = BinaryOperator::Create(Instruction::Sub, MySecret, Y, "", i->getTerminator());
 
       // Create a SelectInst
-      BranchInst *br = cast<BranchInst>(i->getTerminator());
+      br = cast<BranchInst>(i->getTerminator());
       SelectInst *sel =
           SelectInst::Create(br->getCondition(), newNumCaseTrue, newNumCaseFalse, "",
                              i->getTerminator());
@@ -287,16 +251,7 @@ bool Flattening::flatten(Function *f) {
   }
 
   fixStack(f);
-
-  // TODO: pass FunctionAnalysisManager
-//  lower.run(*f, );
+  lower.run(*f, AM);
 
   return true;
-}
-
-char Flattening::ID = 0;
-static RegisterPass<Flattening> X("flattening", "Call graph flattening");
-FunctionPass *llvm::createFlatteningPass() { return new Flattening(); }
-FunctionPass *llvm::createFlatteningPass(bool flag, IPObfuscationContext *IPO, ObfuscationOptions *Options) {
-  return new Flattening(flag, IPO, Options);
 }
