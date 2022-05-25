@@ -4,6 +4,8 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Intrinsics.h"
 
+namespace llvm{
+
 // Shamefully borrowed from ../Scalar/RegToMem.cpp :(
 bool valueEscapes(Instruction *Inst) {
   BasicBlock *BB = Inst->getParent();
@@ -176,3 +178,6 @@ void LowerConstantExpr(Function &F) {
     }
   }
 }
+
+}
+

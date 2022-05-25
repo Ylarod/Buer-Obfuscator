@@ -36,7 +36,7 @@ struct IPObfuscationContext : public PassInfoMixin<IPObfuscationContext> {
 
   CryptoUtils RandomEngine;
   std::set<Function *> LocalFunctions;
-  SmallVector<IPOInfo , 16> IPOInfoList;
+  SmallVector<IPOInfo *, 16> IPOInfoList;
   std::map<Function *, IPOInfo *> IPOInfoMap;
   std::vector<AllocaInst *> DeadSlots;
 
@@ -47,7 +47,7 @@ struct IPObfuscationContext : public PassInfoMixin<IPObfuscationContext> {
   void SurveyFunction(Function &F);
   Function *InsertSecretArgument(Function *F);
   void computeCallSiteSecretArgument(Function *F);
-  IPOInfo AllocaSecretSlot(Function &F);
+  IPOInfo* AllocaSecretSlot(Function &F);
   const IPOInfo *getIPOInfo(Function *F);
 
   PreservedAnalyses run(Module &M, ModuleAnalysisManager &);

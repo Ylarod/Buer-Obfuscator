@@ -19,8 +19,8 @@ struct IndirectBranch : public PassInfoMixin<IndirectBranch> {
   std::map<BasicBlock *, unsigned> BBNumbering;
   std::vector<BasicBlock *> BBTargets;        //all conditional branch targets
 
-  IndirectBranch(bool flag, IPObfuscationContext *IPO, ObfuscationOptions *Options) {
-    this->enable = flag;
+  IndirectBranch(bool enable, IPObfuscationContext *IPO, ObfuscationOptions *Options) {
+    this->enable = enable;
     this->IPO = IPO;
     this->Options = Options;
   }

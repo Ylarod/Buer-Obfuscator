@@ -6,7 +6,6 @@ if (NOT WIN32)
             HelloWorld.cpp
             CryptoUtils.cpp
             Utils.cpp
-            ObfuscationPassManager.cpp
             ObfuscationOptions.cpp
             IPObfuscationContext.cpp
             IndirectBranch.cpp

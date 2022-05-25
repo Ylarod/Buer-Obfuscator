@@ -12,7 +12,7 @@
 namespace llvm {
 
 struct StringEncryption : public PassInfoMixin<StringEncryption> {
-  bool flag;
+  bool enable;
 
   struct CSPEntry {
     CSPEntry()
@@ -44,8 +44,8 @@ struct StringEncryption : public PassInfoMixin<StringEncryption> {
   GlobalVariable *EncryptedStringTable;
   std::set<GlobalVariable *> MaybeDeadGlobalVars;
 
-  StringEncryption(bool flag, IPObfuscationContext *IPO, ObfuscationOptions *Options) {
-    this->flag = flag;
+  StringEncryption(bool enable, IPObfuscationContext *IPO, ObfuscationOptions *Options) {
+    this->enable = enable;
     this->IPO = IPO;
     this->Options = Options;
   }

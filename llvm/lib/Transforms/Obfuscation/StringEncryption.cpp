@@ -1,7 +1,7 @@
+#include "llvm/Transforms/Obfuscation/Utils.h"
 #include "llvm/Transforms/Obfuscation/ObfuscationOptions.h"
 #include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
 #include "llvm/Transforms/Obfuscation/StringEncryption.h"
-#include "llvm/Transforms/Obfuscation/Utils.h"
 #include "llvm/Transforms/Utils/GlobalStatus.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Constants.h"
@@ -317,7 +317,7 @@ void StringEncryption::lowerGlobalConstantStruct(ConstantStruct *CS,
 }
 
 bool StringEncryption::processConstantStringUse(Function *F) {
-  if (!toObfuscate(flag, F, "cse")) {
+  if (!toObfuscate(enable, F, "cse")) {
     return false;
   }
   if (Options && Options->skipFunction(F->getName())) {

@@ -1,7 +1,6 @@
-#include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
 #include "llvm/Transforms/Obfuscation/Utils.h"
+#include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
 #include "llvm/IR/IRBuilder.h"
-
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/IR/AbstractCallSite.h"
@@ -22,10 +21,10 @@ PreservedAnalyses IPObfuscationContext::run(Module &M, ModuleAnalysisManager &) 
     if (F.isDeclaration()) {
       continue;
     }
-    IPOInfo Info = AllocaSecretSlot(F);
+    IPOInfo* Info = AllocaSecretSlot(F);
 
     IPOInfoList.push_back(Info);
-    IPOInfoMap[&F] = &Info;
+    IPOInfoMap[&F] = Info;
   }
 
   std::vector<Function *> NewFuncs;
@@ -206,7 +205,7 @@ Function *IPObfuscationContext::InsertSecretArgument(Function *F) {
 }
 
 // Create StackSlots for Secrets and a LoadInst for caller's secret slot
-IPObfuscationContext::IPOInfo IPObfuscationContext::AllocaSecretSlot(Function &F) {
+IPObfuscationContext::IPOInfo* IPObfuscationContext::AllocaSecretSlot(Function &F) {
   IRBuilder<> IRB(&F.getEntryBlock().front());
   IntegerType *I32Ty = Type::getInt32Ty(F.getContext());
   AllocaInst *CallerSlot = IRB.CreateAlloca(I32Ty, nullptr, "CallerSlot");
@@ -218,7 +217,7 @@ IPObfuscationContext::IPOInfo IPObfuscationContext::AllocaSecretSlot(Function &F
   IRB.CreateStore(SecretCI, CallerSlot);
   LoadInst *MySecret = IRB.CreateLoad(I32Ty,CallerSlot, "MySecret");
 
-  return {CallerSlot, CalleeSlot, MySecret, SecretCI};
+  return new IPOInfo(CallerSlot, CalleeSlot, MySecret, SecretCI);
 }
 
 const IPObfuscationContext::IPOInfo *IPObfuscationContext::getIPOInfo(Function *F) {

@@ -24,14 +24,14 @@
 namespace llvm {
 
 struct Flattening : public PassInfoMixin<Flattening> {
-  bool flag;
+  bool enable;
 
   IPObfuscationContext *IPO;
   ObfuscationOptions *Options;
   CryptoUtils RandomEngine;
 
-  Flattening(bool flag, IPObfuscationContext *IPO, ObfuscationOptions *Options) {
-    this->flag = flag;
+  Flattening(bool enable, IPObfuscationContext *IPO, ObfuscationOptions *Options) {
+    this->enable = enable;
     this->IPO = IPO;
     this->Options = Options;
   }

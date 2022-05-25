@@ -10,9 +10,8 @@
 // This file implements the flattening pass
 //
 //===----------------------------------------------------------------------===//
-
-#include "llvm/Transforms/Obfuscation/Flattening.h"
 #include "llvm/Transforms/Obfuscation/Utils.h"
+#include "llvm/Transforms/Obfuscation/Flattening.h"
 #include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
 #include "llvm/Transforms/Utils/LowerSwitch.h"
 #include "llvm/Transforms/Obfuscation/CryptoUtils.h"
@@ -28,7 +27,7 @@ STATISTIC(Flattened, "Functions flattened");
 
 PreservedAnalyses Flattening::run(Function &F, FunctionAnalysisManager &AM) const{
   Function *tmp = &F;
-  if (toObfuscate(flag, tmp, "fla")) {
+  if (toObfuscate(enable, tmp, "fla")) {
     if (flatten(tmp, AM)) {
       ++Flattened;
     }
@@ -250,7 +249,7 @@ bool Flattening::flatten(Function *f, FunctionAnalysisManager &AM) const {
     }
   }
 
-  fixStack(f);
+  fixStack(*f);
   lower.run(*f, AM);
 
   return true;

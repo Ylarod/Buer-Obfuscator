@@ -5,11 +5,12 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/Transforms/Utils/Local.h" // For DemoteRegToStack and DemotePHIToStack
 
-using namespace llvm;
+namespace llvm{
 bool valueEscapes(Instruction *Inst);
-void fixStack(Function *f);
+void fixStack(Function &F);
 std::string readAnnotate(Function *f);
 bool toObfuscate(bool flag, Function *f, std::string attribute);
 void LowerConstantExpr(Function &F);
+}
 
 #endif
