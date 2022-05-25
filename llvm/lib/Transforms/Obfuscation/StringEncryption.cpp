@@ -18,98 +18,11 @@
 #define DEBUG_TYPE "string-encryption"
 
 using namespace llvm;
-namespace {
-struct StringEncryption : public ModulePass {
-  static char ID;
-  bool flag;
 
-  struct CSPEntry {
-    CSPEntry()
-        : ID(0), Offset(0), DecGV(nullptr), DecStatus(nullptr),
-          DecFunc(nullptr) {}
-    unsigned ID;
-    unsigned Offset;
-    GlobalVariable *DecGV;
-    GlobalVariable *DecStatus; // is decrypted or not
-    std::vector<uint8_t> Data;
-    std::vector<uint8_t> EncKey;
-    Function *DecFunc;
-  };
-
-  struct CSUser {
-    CSUser(GlobalVariable *User, GlobalVariable *NewGV)
-        : GV(User), DecGV(NewGV), DecStatus(nullptr), InitFunc(nullptr) {}
-    GlobalVariable *GV;
-    GlobalVariable *DecGV;
-    GlobalVariable *DecStatus; // is decrypted or not
-    Function *InitFunc; // InitFunc will use decryted string to initialize DecGV
-  };
-
-  ObfuscationOptions *Options;
-  CryptoUtils RandomEngine;
-  std::vector<CSPEntry *> ConstantStringPool;
-  std::map<GlobalVariable *, CSPEntry *> CSPEntryMap;
-  std::map<GlobalVariable *, CSUser *> CSUserMap;
-  GlobalVariable *EncryptedStringTable;
-  std::set<GlobalVariable *> MaybeDeadGlobalVars;
-
-  StringEncryption() : ModulePass(ID) {
-    this->flag = false;
-    Options = nullptr;
-  }
-
-  StringEncryption(bool flag, IPObfuscationContext *IPO,
-                   ObfuscationOptions *Options)
-      : ModulePass(ID) {
-    this->flag = flag;
-    this->Options = Options;
-    initializeStringEncryptionPass(*PassRegistry::getPassRegistry());
-  }
-
-  bool doFinalization(Module &) override {
-    for (CSPEntry *Entry : ConstantStringPool) {
-      delete (Entry);
-    }
-    for (auto &I : CSUserMap) {
-      CSUser *User = I.second;
-      delete (User);
-    }
-    ConstantStringPool.clear();
-    CSPEntryMap.clear();
-    CSUserMap.clear();
-    MaybeDeadGlobalVars.clear();
-    return false;
-  }
-
-  StringRef getPassName() const override { return {"StringEncryption"}; }
-
-  bool runOnModule(Module &M) override;
-  void collectConstantStringUser(GlobalVariable *CString,
-                                 std::set<GlobalVariable *> &Users);
-  bool isValidToEncrypt(GlobalVariable *GV);
-  bool isCString(const ConstantDataSequential *CDS);
-  bool isObjCSelectorPtr(const GlobalVariable *GV);
-  bool isCFConstantStringTag(const GlobalVariable *GV);
-  bool processConstantStringUse(Function *F);
-  void deleteUnusedGlobalVariable();
-  Function *buildDecryptFunction(Module *M, const CSPEntry *Entry);
-  Function *buildInitFunction(Module *M, const CSUser *User);
-  void getRandomBytes(std::vector<uint8_t> &Bytes, uint32_t MinSize,
-                      uint32_t MaxSize);
-  void lowerGlobalConstant(Constant *CV, IRBuilder<> &IRB, Value *Ptr);
-  void lowerGlobalConstantStruct(ConstantStruct *CS, IRBuilder<> &IRB,
-                                 Value *Ptr);
-  void lowerGlobalConstantArray(ConstantArray *CA, IRBuilder<> &IRB,
-                                Value *Ptr);
-};
-} // namespace llvm
-
-char StringEncryption::ID = 0;
-bool StringEncryption::runOnModule(Module &M) {
+PreservedAnalyses StringEncryption::run(Module &M, ModuleAnalysisManager &){
   std::set<GlobalVariable *> ConstantStringUsers;
 
   // collect all c strings
-
   LLVMContext &Ctx = M.getContext();
   ConstantInt *Zero = ConstantInt::get(Type::getInt32Ty(Ctx), 0);
   for (GlobalVariable &GV : M.globals()) {
@@ -124,8 +37,8 @@ bool StringEncryption::runOnModule(Module &M) {
         CSPEntry *Entry = new CSPEntry();
         StringRef Data = CDS->getRawDataValues();
         Entry->Data.reserve(Data.size());
-        for (unsigned i = 0; i < Data.size(); ++i) {
-          Entry->Data.push_back(static_cast<uint8_t>(Data[i]));
+        for (char i : Data) {
+          Entry->Data.push_back(static_cast<uint8_t>(i));
         }
         Entry->ID = static_cast<unsigned>(ConstantStringPool.size());
         ConstantAggregateZero *ZeroInit =
@@ -216,12 +129,12 @@ bool StringEncryption::runOnModule(Module &M) {
       Entry->DecStatus->eraseFromParent();
     }
   }
-  return Changed;
+  return Changed ? PreservedAnalyses::none() : PreservedAnalyses::all();
 }
 
 void StringEncryption::getRandomBytes(std::vector<uint8_t> &Bytes,
                                       uint32_t MinSize, uint32_t MaxSize) {
-  uint32_t N = RandomEngine.get_uint32_t();
+  uint32_t N = IPO->RandomEngine.get_uint32_t();
   uint32_t Len;
 
   assert(MaxSize >= MinSize);
@@ -233,7 +146,7 @@ void StringEncryption::getRandomBytes(std::vector<uint8_t> &Bytes,
   }
 
   char *Buffer = new char[Len];
-  RandomEngine.get_bytes(Buffer, Len);
+  IPO->RandomEngine.get_bytes(Buffer, Len);
   for (uint32_t i = 0; i < Len; ++i) {
     Bytes.push_back(static_cast<uint8_t>(Buffer[i]));
   }
@@ -599,15 +512,3 @@ void StringEncryption::deleteUnusedGlobalVariable() {
     }
   }
 }
-
-ModulePass *llvm::createStringEncryptionPass() {
-  return new StringEncryption();
-}
-ModulePass *llvm::createStringEncryptionPass(bool flag,
-                                             IPObfuscationContext *IPO,
-                                             ObfuscationOptions *Options) {
-  return new StringEncryption(flag, IPO, Options);
-}
-
-INITIALIZE_PASS(StringEncryption, "string-encryption",
-                "Enable IR String Encryption", false, false)
