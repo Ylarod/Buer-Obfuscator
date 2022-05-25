@@ -10,27 +10,14 @@ using namespace llvm;
 
 namespace llvm {
 
-void ObfuscationOptions::init() {
-  EnableIndirectBr = false;
-  EnableIndirectCall = false;
-  EnableIndirectGV = false;
-  EnableCFF = false;
-  EnableCSE = false;
-  hasFilter = false;
-}
-
-ObfuscationOptions::ObfuscationOptions() {
-  init();
-}
 ObfuscationOptions::ObfuscationOptions(const Twine &FileName) {
-  init();
   if (sys::fs::exists(FileName)) {
     parseOptions(FileName);
   }
 }
 
 static StringRef getNodeString(yaml::Node *n) {
-  if (yaml::ScalarNode *sn = dyn_cast<yaml::ScalarNode>(n)) {
+  if (auto *sn = dyn_cast<yaml::ScalarNode>(n)) {
     SmallString<32> Storage;
     StringRef Val = sn->getValue(Storage);
     return Val;
@@ -45,9 +32,8 @@ static unsigned long getIntVal(yaml::Node *n) {
 
 static std::set<std::string> getStringList(yaml::Node *n) {
   std::set<std::string> filter;
-  if (yaml::SequenceNode *sn = dyn_cast<yaml::SequenceNode>(n)) {
-    for (yaml::SequenceNode::iterator i = sn->begin(), e = sn->end();
-         i != e; ++i) {
+  if (auto *sn = dyn_cast<yaml::SequenceNode>(n)) {
+    for (auto i = sn->begin(), e = sn->end(); i != e; ++i) {
       filter.insert(getNodeString(i).str());
     }
   }
@@ -65,23 +51,22 @@ bool ObfuscationOptions::skipFunction(const Twine &FName) {
 void ObfuscationOptions::handleRoot(yaml::Node *n) {
   if (!n)
     return;
-  if (yaml::MappingNode *mn = dyn_cast<yaml::MappingNode>(n)) {
-    for (yaml::MappingNode::iterator i = mn->begin(), e = mn->end();
-         i != e; ++i) {
-      StringRef K = getNodeString(i->getKey());
+  if (auto *mn = dyn_cast<yaml::MappingNode>(n)) {
+    for (auto & i : *mn) {
+      StringRef K = getNodeString(i.getKey());
       if (K == "IndirectBr") {
-        EnableIndirectBr = static_cast<bool>(getIntVal(i->getValue()));
+        EnableIndirectBr = static_cast<bool>(getIntVal(i.getValue()));
       } else if (K == "IndirectCall") {
-        EnableIndirectCall = static_cast<bool>(getIntVal(i->getValue()));
+        EnableIndirectCall = static_cast<bool>(getIntVal(i.getValue()));
       } else if (K == "IndirectGV") {
-        EnableIndirectGV = static_cast<bool>(getIntVal(i->getValue()));
+        EnableIndirectGV = static_cast<bool>(getIntVal(i.getValue()));
       } else if (K == "ControlFlowFlatten") {
-        EnableCFF = static_cast<bool>(getIntVal(i->getValue()));
+        EnableCFF = static_cast<bool>(getIntVal(i.getValue()));
       } else if (K == "ConstantStringEncryption") {
-        EnableCSE = static_cast<bool>(getIntVal(i->getValue()));
+        EnableCSE = static_cast<bool>(getIntVal(i.getValue()));
       } else if (K == "Filter") {
         hasFilter = true;
-        FunctionFilter = getStringList(i->getValue());
+        FunctionFilter = getStringList(i.getValue());
       }
     }
   }
@@ -106,7 +91,7 @@ bool ObfuscationOptions::parseOptions(const Twine &FileName) {
   return true;
 }
 
-void ObfuscationOptions::dump() {
+void ObfuscationOptions::dump() const {
   dbgs() << "EnableIndirectBr: " << EnableIndirectBr << "\n"
          << "EnableIndirectCall: " << EnableIndirectCall << "\n"
          << "EnableIndirectGV: " << EnableIndirectGV << "\n"

@@ -8,19 +8,18 @@ namespace llvm {
 
 struct ObfuscationOptions {
   explicit ObfuscationOptions(const Twine &FileName);
-  explicit ObfuscationOptions();
+  explicit ObfuscationOptions() = default;
   bool skipFunction(const Twine &FName);
-  void dump();
+  void dump() const;
 
-  bool EnableIndirectBr;
-  bool EnableIndirectCall;
-  bool EnableIndirectGV;
-  bool EnableCFF;
-  bool EnableCSE;
-  bool hasFilter;
+  bool EnableIndirectBr = false;
+  bool EnableIndirectCall = false;
+  bool EnableIndirectGV = false;
+  bool EnableCFF = false;
+  bool EnableCSE = false;
+  bool hasFilter = false;
 
 private:
-  void init();
   void handleRoot(yaml::Node *n);
   bool parseOptions(const Twine &FileName);
   std::set<std::string> FunctionFilter;
