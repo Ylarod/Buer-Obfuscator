@@ -1,15 +1,15 @@
 #include "llvm/Transforms/Obfuscation/Utils.h"
-#include "llvm/IR/InstIterator.h"
-#include "llvm/IR/Intrinsics.h"
-#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Intrinsics.h"
 
 // Shamefully borrowed from ../Scalar/RegToMem.cpp :(
 bool valueEscapes(Instruction *Inst) {
   BasicBlock *BB = Inst->getParent();
   for (Value::use_iterator UI = Inst->use_begin(), E = Inst->use_end(); UI != E;
        ++UI) {
-    Instruction *I = cast<Instruction>(*UI);
+    auto *I = cast<Instruction>(*UI);
     if (I->getParent() != BB || isa<PHINode>(I)) {
       return true;
     }
@@ -17,72 +17,54 @@ bool valueEscapes(Instruction *Inst) {
   return false;
 }
 
-void fixStack(Function *f) {
-  // Try to remove phi node and demote reg to stack
-  std::vector<PHINode *> tmpPhi;
-  std::vector<Instruction *> tmpReg;
-  BasicBlock *bbEntry = &*f->begin();
-
-  do {
-    tmpPhi.clear();
-    tmpReg.clear();
-
-    for (Function::iterator i = f->begin(); i != f->end(); ++i) {
-
-      for (BasicBlock::iterator j = i->begin(); j != i->end(); ++j) {
-
-        if (isa<PHINode>(j)) {
-          PHINode *phi = cast<PHINode>(j);
-          tmpPhi.push_back(phi);
-          continue;
-        }
-        if (!(isa<AllocaInst>(j) && j->getParent() == bbEntry) &&
-            (valueEscapes(&*j) || j->isUsedOutsideOfBlock(&*i))) {
-          tmpReg.push_back(&*j);
-          continue;
+void fixStack(Function &F) {
+  std::vector<PHINode *> origPHI;
+  std::vector<Instruction *> origReg;
+  BasicBlock &entryBB = F.getEntryBlock();
+  do{
+    for (BasicBlock &BB : F) {
+      for (Instruction &I : BB) {
+        if (auto *PN = dyn_cast<PHINode>(&I)) {
+          origPHI.push_back(PN);
+        } else if (!(isa<AllocaInst>(&I) && I.getParent() == &entryBB) &&
+                   I.isUsedOutsideOfBlock(&BB)) {
+          origReg.push_back(&I);
         }
       }
     }
-    for (unsigned int i = 0; i != tmpReg.size(); ++i) {
-      DemoteRegToStack(*tmpReg.at(i), f->begin()->getTerminator());
+    for (PHINode *PN : origPHI) {
+      DemotePHIToStack(PN, entryBB.getTerminator());
     }
-
-    for (unsigned int i = 0; i != tmpPhi.size(); ++i) {
-      DemotePHIToStack(tmpPhi.at(i), f->begin()->getTerminator());
+    for (Instruction *I : origReg) {
+      DemoteRegToStack(*I, entryBB.getTerminator());
     }
-
-  } while (tmpReg.size() != 0 || tmpPhi.size() != 0);
+  }while(!origPHI.empty() || !origReg.empty());
 }
 
 std::string readAnnotate(Function *f) {
-  std::string annotation = "";
-
+  std::string annotation;
   // Get annotation variable
   GlobalVariable *glob =
       f->getParent()->getGlobalVariable("llvm.global.annotations");
-
-  if (glob != NULL) {
+  if (glob != nullptr) {
     // Get the array
-    if (ConstantArray *ca = dyn_cast<ConstantArray>(glob->getInitializer())) {
+    if (auto *ca = dyn_cast<ConstantArray>(glob->getInitializer())) {
       for (unsigned i = 0; i < ca->getNumOperands(); ++i) {
         // Get the struct
-        if (ConstantStruct *structAn =
-            dyn_cast<ConstantStruct>(ca->getOperand(i))) {
-          if (ConstantExpr *expr =
-              dyn_cast<ConstantExpr>(structAn->getOperand(0))) {
+        if (auto *structAn = dyn_cast<ConstantStruct>(ca->getOperand(i))) {
+          if (auto *expr = dyn_cast<ConstantExpr>(structAn->getOperand(0))) {
             // If it's a bitcast we can check if the annotation is concerning
             // the current function
             if (expr->getOpcode() == Instruction::BitCast &&
                 expr->getOperand(0) == f) {
-              ConstantExpr *note = cast<ConstantExpr>(structAn->getOperand(1));
+              auto *note = cast<ConstantExpr>(structAn->getOperand(1));
               // If it's a GetElementPtr, that means we found the variable
               // containing the annotations
               if (note->getOpcode() == Instruction::GetElementPtr) {
-                if (GlobalVariable *annoteStr =
-                    dyn_cast<GlobalVariable>(note->getOperand(0))) {
-                  if (ConstantDataSequential *data =
-                      dyn_cast<ConstantDataSequential>(
-                          annoteStr->getInitializer())) {
+                if (auto *annotateStr =
+                        dyn_cast<GlobalVariable>(note->getOperand(0))) {
+                  if (auto *data = dyn_cast<ConstantDataSequential>(
+                          annotateStr->getInitializer())) {
                     if (data->isString()) {
                       annotation += data->getAsString().lower() + " ";
                     }
@@ -108,7 +90,7 @@ bool toObfuscate(bool flag, Function *f, std::string attribute) {
   }
 
   // Check external linkage
-  if(f->hasAvailableExternallyLinkage() != 0) {
+  if (f->hasAvailableExternallyLinkage() != 0) {
     return false;
   }
 
@@ -172,10 +154,10 @@ void LowerConstantExpr(Function &F) {
     Instruction *I = *It;
     WorkList.erase(*It);
 
-    if (PHINode *PHI = dyn_cast<PHINode>(I)) {
+    if (auto *PHI = dyn_cast<PHINode>(I)) {
       for (unsigned int i = 0; i < PHI->getNumIncomingValues(); ++i) {
         Instruction *TI = PHI->getIncomingBlock(i)->getTerminator();
-        if (ConstantExpr *CE = dyn_cast<ConstantExpr>(PHI->getIncomingValue(i))) {
+        if (auto *CE = dyn_cast<ConstantExpr>(PHI->getIncomingValue(i))) {
           Instruction *NewInst = CE->getAsInstruction();
           NewInst->insertBefore(TI);
           PHI->setIncomingValue(i, NewInst);
@@ -184,7 +166,7 @@ void LowerConstantExpr(Function &F) {
       }
     } else {
       for (unsigned int i = 0; i < I->getNumOperands(); ++i) {
-        if (ConstantExpr *CE = dyn_cast<ConstantExpr>(I->getOperand(i))) {
+        if (auto *CE = dyn_cast<ConstantExpr>(I->getOperand(i))) {
           Instruction *NewInst = CE->getAsInstruction();
           NewInst->insertBefore(I);
           I->replaceUsesOfWith(CE, NewInst);
