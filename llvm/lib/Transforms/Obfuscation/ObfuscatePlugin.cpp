@@ -5,6 +5,7 @@
 #include "llvm/Transforms/Obfuscation/ObfuscatePlugin.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Transforms/Obfuscation/HelloWorld.h"
+#include "llvm/Transforms/Obfuscation/ObfuscationPassManager.h"
 
 using namespace llvm;
 
@@ -19,6 +20,7 @@ void obfuscatePluginCallback(llvm::ModulePassManager &PM,
   PM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
 }
 
+/* New PM Registration for static plugin */
 llvm::PassPluginLibraryInfo getLLVMObfuscationPluginInfo(){
   return {LLVM_PLUGIN_API_VERSION, "LLVMObfuscation", LLVM_VERSION_STRING,
           [](PassBuilder &PB) {
@@ -26,12 +28,11 @@ llvm::PassPluginLibraryInfo getLLVMObfuscationPluginInfo(){
           }};
 }
 
-namespace {
-/* New PM Registration */
+#ifndef LLVM_LLVMOBFUSCATION_LINK_INTO_TOOLS
+/* New PM Registration for dynamic plugin */
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
 llvmGetPassPluginInfo() {
   errs() << "llvmGetPassPluginInfo\n";
   return getLLVMObfuscationPluginInfo();
 }
-
-} // namespace
+#endif
