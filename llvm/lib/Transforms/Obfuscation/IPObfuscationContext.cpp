@@ -12,33 +12,39 @@ using namespace llvm;
 
 namespace llvm {
 
-PreservedAnalyses IPObfuscationContext::run(Module &M, ModuleAnalysisManager &) {
+PreservedAnalyses IPObfuscationContext::run(Module &M,
+                                            ModuleAnalysisManager &) {
+  // find all local functions with local linkage, then append to LocalFunctions
   for (auto &F : M) {
     SurveyFunction(F);
   }
 
+  // alloc secret slot for all local functions
   for (auto &F : M) {
     if (F.isDeclaration()) {
       continue;
     }
-    IPOInfo* Info = AllocaSecretSlot(F);
+    IPOInfo *Info = AllocaSecretSlot(F);
 
     IPOInfoList.push_back(Info);
     IPOInfoMap[&F] = Info;
   }
 
+  // replace each LocalFunction to a new function with secret argument
   std::vector<Function *> NewFuncs;
   for (auto *F : LocalFunctions) {
     Function *NF = InsertSecretArgument(F);
     NewFuncs.push_back(NF);
   }
 
-  for (auto *F: NewFuncs) {
+  for (auto *F : NewFuncs) {
     computeCallSiteSecretArgument(F);
   }
 
-  for (AllocaInst *Slot:DeadSlots) {
-    for (Value::use_iterator I = Slot->use_begin(), E = Slot->use_end(); I != E; ++I) {
+  // remove dead slots and it's uses
+  for (AllocaInst *Slot : DeadSlots) {
+    for (Value::use_iterator I = Slot->use_begin(), E = Slot->use_end(); I != E;
+         ++I) {
       if (auto *Inst = dyn_cast<Instruction>(I->getUser())) {
         Inst->eraseFromParent();
       }
@@ -50,7 +56,7 @@ PreservedAnalyses IPObfuscationContext::run(Module &M, ModuleAnalysisManager &) 
 
 void IPObfuscationContext::SurveyFunction(Function &F) {
   if (!F.hasLocalLinkage() || F.isDeclaration()) {
-    return;
+    return; // not local linkage or no primary definition in this module
   }
 
   for (const Use &U : F.uses()) {
@@ -93,7 +99,8 @@ Function *IPObfuscationContext::InsertSecretArgument(Function *F) {
   AttributeSet RAttrs = PAL.getRetAttrs();
 
   // Reconstruct the AttributesList based on the vector we constructed.
-  AttributeList NewPAL = AttributeList::get(F->getContext(), PAL.getFnAttrs(), RAttrs, ArgAttrVec);
+  AttributeList NewPAL =
+      AttributeList::get(F->getContext(), PAL.getFnAttrs(), RAttrs, ArgAttrVec);
 
   // Create the new function type based on the recomputed parameters.
   FunctionType *NFTy = FunctionType::get(RetTy, Params, FTy->isVarArg());
@@ -135,24 +142,27 @@ Function *IPObfuscationContext::InsertSecretArgument(Function *F) {
     }
 
     // Push any varargs arguments on the list. Don't forget their attributes.
-    for (auto* E = CS.getInstruction()->arg_end(); I != E; ++I, ++i) {
+    for (auto *E = CS.getInstruction()->arg_end(); I != E; ++I, ++i) {
       Args.push_back(*I);
       ArgAttrVec.push_back(CallPAL.getParamAttrs(i));
     }
 
     // Reconstruct the AttributesList based on the vector we constructed.
     AttributeList NewCallPAL =
-        AttributeList::get(F->getContext(), CallPAL.getFnAttrs(), CallPAL.getRetAttrs(), ArgAttrVec);
+        AttributeList::get(F->getContext(), CallPAL.getFnAttrs(),
+                           CallPAL.getRetAttrs(), ArgAttrVec);
 
     Instruction *New;
     if (auto *II = dyn_cast<InvokeInst>(Call)) {
       New = InvokeInst::Create(NF, II->getNormalDest(), II->getUnwindDest(),
                                Args, "", Call);
-      cast<InvokeInst>(New)->setCallingConv(CS.getInstruction()->getCallingConv());
+      cast<InvokeInst>(New)->setCallingConv(
+          CS.getInstruction()->getCallingConv());
       cast<InvokeInst>(New)->setAttributes(NewCallPAL);
     } else {
       New = CallInst::Create(NF, Args, "", Call);
-      cast<CallInst>(New)->setCallingConv(CS.getInstruction()->getCallingConv());
+      cast<CallInst>(New)->setCallingConv(
+          CS.getInstruction()->getCallingConv());
       cast<CallInst>(New)->setAttributes(NewCallPAL);
       if (cast<CallInst>(Call)->isTailCall())
         cast<CallInst>(New)->setTailCall();
@@ -205,7 +215,8 @@ Function *IPObfuscationContext::InsertSecretArgument(Function *F) {
 }
 
 // Create StackSlots for Secrets and a LoadInst for caller's secret slot
-IPObfuscationContext::IPOInfo* IPObfuscationContext::AllocaSecretSlot(Function &F) {
+IPObfuscationContext::IPOInfo *
+IPObfuscationContext::AllocaSecretSlot(Function &F) {
   IRBuilder<> IRB(&F.getEntryBlock().front());
   IntegerType *I32Ty = Type::getInt32Ty(F.getContext());
   AllocaInst *CallerSlot = IRB.CreateAlloca(I32Ty, nullptr, "CallerSlot");
@@ -215,16 +226,17 @@ IPObfuscationContext::IPOInfo* IPObfuscationContext::AllocaSecretSlot(Function &
   uint32_t V = RandomEngine.get_uint32_t();
   ConstantInt *SecretCI = ConstantInt::get(I32Ty, V, false);
   IRB.CreateStore(SecretCI, CallerSlot);
-  LoadInst *MySecret = IRB.CreateLoad(I32Ty,CallerSlot, "MySecret");
+  LoadInst *MySecret = IRB.CreateLoad(I32Ty, CallerSlot, "MySecret");
 
   return new IPOInfo(CallerSlot, CalleeSlot, MySecret, SecretCI);
 }
 
-const IPObfuscationContext::IPOInfo *IPObfuscationContext::getIPOInfo(Function *F) {
+const IPObfuscationContext::IPOInfo *
+IPObfuscationContext::getIPOInfo(Function *F) {
   return IPOInfoMap[F];
 }
 
-// at each callsite, compute the callee's secret argument using the caller's
+// at each call site, compute the callee's secret argument using the caller's
 void IPObfuscationContext::computeCallSiteSecretArgument(Function *F) {
   IPOInfo *CalleeIPOInfo = IPOInfoMap[F];
 
@@ -239,13 +251,18 @@ void IPObfuscationContext::computeCallSiteSecretArgument(Function *F) {
     Value *CallerSecret;
     CallerSecret = CallerIPOInfo->SecretLI;
 
-    Constant *X = ConstantExpr::getSub(CallerIPOInfo->SecretCI, CalleeIPOInfo->SecretCI);
+    // CalleeSecret = CallerSecret - (CallerSecretInt - CalleeSecretInt)
+    // X = CallerSecretInt - CalleeSecretInt
+    Constant *X =
+        ConstantExpr::getSub(CallerIPOInfo->SecretCI, CalleeIPOInfo->SecretCI);
     Value *CalleeSecret = IRB.CreateSub(CallerSecret, X);
     IRB.CreateStore(CalleeSecret, CallerIPOInfo->CalleeSlot);
   }
 }
-IPObfuscationContext::IPObfuscationContext(bool enable, const std::string& seed) {
+
+IPObfuscationContext::IPObfuscationContext(bool enable,
+                                           const std::string &seed) {
   this->enable = enable;
   RandomEngine.prng_seed(seed);
 }
-}
+} // namespace llvm
