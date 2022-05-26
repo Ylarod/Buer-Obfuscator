@@ -7,8 +7,11 @@ The project name has not been decided yet, the repo name may be changed in the f
 ## Progress
 
 1. port goron
-   1. irobf-cse works fine
-   2. irobf-indbr, irobf-icall, irobf-indgv will cause a linker error
+   a. irobf-cse, irobf-indbr, irobf-icall, irobf-indgv  works fine
+   
+   > Do **NOT** use macOS default LLD !!!
+   >
+   > It will cause a link error !!!
 
 
 ## Environment
