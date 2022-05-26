@@ -6,12 +6,7 @@ The project name has not been decided yet, the repo name may be changed in the f
 
 ## Progress
 
-1. port goron
-   a. irobf-cse, irobf-indbr, irobf-icall, irobf-indgv  works fine
-   
-   > Do **NOT** use macOS default LLD !!!
-   >
-   > It will cause a link error !!!
+- [x] 1. port goron
 
 
 ## Environment
