@@ -91,7 +91,7 @@ PreservedAnalyses IndirectBranch::run(Function &F, FunctionAnalysisManager &AM) 
   NumberBasicBlock(F);
 
   if (BBNumbering.empty()) {
-    return PreservedAnalyses::all();
+    return PreservedAnalyses::none();
   }
 
   uint32_t V = IPO->RandomEngine.get_uint32_t() & ~3;
