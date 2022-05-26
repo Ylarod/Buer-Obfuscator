@@ -78,15 +78,15 @@ void obfuscatePluginCallback(llvm::ModulePassManager &PM,
 
   ObfuscationPassManager OPM;
   IPObfuscationContext* pIPO = OPM.getIPObfuscationContext();
-  std::unique_ptr<ObfuscationOptions> Options(getOptions());
+  ObfuscationOptions* Options = getOptions();
 
-  OPM.addPass(StringEncryption(EnableIRStringEncryption || Options->EnableCSE, pIPO, Options.get()));
+  OPM.addPass(StringEncryption(EnableIRStringEncryption || Options->EnableCSE, pIPO, Options));
   FunctionPassManager FPM;
   FPM.addPass(HelloWorld(RunHelloWorld));
-  FPM.addPass(Flattening(EnableIRFlattening || Options->EnableCFF, pIPO, Options.get()));
-  FPM.addPass(IndirectBranch(EnableIndirectBr || Options->EnableIndirectBr, pIPO, Options.get()));
-  FPM.addPass(IndirectCall(EnableIndirectCall || Options->EnableIndirectCall, pIPO, Options.get()));
-  FPM.addPass(IndirectGlobalVariable(EnableIndirectGV || Options->EnableIndirectGV, pIPO, Options.get()));
+  FPM.addPass(Flattening(EnableIRFlattening || Options->EnableCFF, pIPO, Options));
+  FPM.addPass(IndirectBranch(EnableIndirectBr || Options->EnableIndirectBr, pIPO, Options));
+  FPM.addPass(IndirectCall(EnableIndirectCall || Options->EnableIndirectCall, pIPO, Options));
+  FPM.addPass(IndirectGlobalVariable(EnableIndirectGV || Options->EnableIndirectGV, pIPO, Options));
   OPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
 
   PM.addPass(HelloWorld(RunHelloWorld));
