@@ -183,6 +183,7 @@ void printInst(Instruction* ins) {
 
 
 void printBB(BasicBlock* BB) {
+  errs() << BB->getName() << "\n";
   for (auto & i : *BB) {
     printInst(&i);
   }
@@ -192,7 +193,6 @@ void printBB(BasicBlock* BB) {
 void printFunction(Function* f) {
   errs() << "Function Name:" << f->getName() << "\n";
   for (auto & i : *f) {
-    errs() << i.getName() << "\n";
     printBB(&i);
   }
 }
@@ -200,7 +200,6 @@ void printFunction(Function* f) {
 void printModule(Module *m) {
   errs() << "Module Name:" << m->getName() << "\n";
   for (auto & i : *m) {
-    errs() << i.getName() << "\n";
     printFunction(&i);
   }
 }
