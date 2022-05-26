@@ -13,7 +13,6 @@
 #include "llvm/Transforms/Obfuscation/Utils.h"
 #include "llvm/Transforms/Obfuscation/Flattening.h"
 #include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
-#include "llvm/Transforms/Utils/LowerSwitch.h"
 #include "llvm/Transforms/Obfuscation/CryptoUtils.h"
 #include "llvm/ADT/Statistic.h"
 
@@ -30,6 +29,8 @@ PreservedAnalyses Flattening::run(Function &F, FunctionAnalysisManager &AM) cons
   if (toObfuscate(enable, tmp, "fla")) {
     if (flatten(tmp, AM)) {
       ++Flattened;
+    }else{
+      return PreservedAnalyses::all();
     }
   }
   return PreservedAnalyses::none();
@@ -42,6 +43,11 @@ bool Flattening::flatten(Function *f, FunctionAnalysisManager &AM) const {
   LoadInst *load;
   SwitchInst *switchI;
   AllocaInst *switchVar;
+
+  // Nothing to flatten
+  if (f->size() <= 1) {
+    return false;
+  }
 
   // SCRAMBLER
   char scrambling_key[16];
@@ -61,11 +67,6 @@ bool Flattening::flatten(Function *f, FunctionAnalysisManager &AM) const {
     if (isa<InvokeInst>(bb->getTerminator())) {
       return false;
     }
-  }
-
-  // Nothing to flatten
-  if (origBB.size() <= 1) {
-    return false;
   }
 
   LLVMContext &Ctx = f->getContext();
@@ -245,7 +246,6 @@ bool Flattening::flatten(Function *f, FunctionAnalysisManager &AM) const {
       // Update switchVar and jump to the end of loop
       new StoreInst(sel, load->getPointerOperand(), i);
       BranchInst::Create(loopEnd, i);
-      continue;
     }
   }
 
