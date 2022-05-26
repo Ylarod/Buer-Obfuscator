@@ -95,7 +95,7 @@ bool Flattening::flatten(Function *f, FunctionAnalysisManager &AM) const {
   if ((br != nullptr && br->isConditional()) ||
       insert->getTerminator()->getNumSuccessors() > 1) {
     BasicBlock::iterator i = insert->end();
-	--i;
+    --i;
 
     if (insert->size() > 1) {
       --i;

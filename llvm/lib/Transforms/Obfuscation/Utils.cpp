@@ -23,24 +23,22 @@ void fixStack(Function &F) {
   std::vector<PHINode *> origPHI;
   std::vector<Instruction *> origReg;
   BasicBlock &entryBB = F.getEntryBlock();
-  do{
-    for (BasicBlock &BB : F) {
-      for (Instruction &I : BB) {
-        if (auto *PN = dyn_cast<PHINode>(&I)) {
-          origPHI.push_back(PN);
-        } else if (!(isa<AllocaInst>(&I) && I.getParent() == &entryBB) &&
-                   I.isUsedOutsideOfBlock(&BB)) {
-          origReg.push_back(&I);
-        }
+  for (BasicBlock &BB : F) {
+    for (Instruction &I : BB) {
+      if (auto *PN = dyn_cast<PHINode>(&I)) {
+        origPHI.push_back(PN);
+      } else if (!(isa<AllocaInst>(&I) && I.getParent() == &entryBB) &&
+                 I.isUsedOutsideOfBlock(&BB)) {
+        origReg.push_back(&I);
       }
     }
-    for (PHINode *PN : origPHI) {
-      DemotePHIToStack(PN, entryBB.getTerminator());
-    }
-    for (Instruction *I : origReg) {
-      DemoteRegToStack(*I, entryBB.getTerminator());
-    }
-  }while(!origPHI.empty() || !origReg.empty());
+  }
+  for (PHINode *PN : origPHI) {
+    DemotePHIToStack(PN, entryBB.getTerminator());
+  }
+  for (Instruction *I : origReg) {
+    DemoteRegToStack(*I, entryBB.getTerminator());
+  }
 }
 
 std::string readAnnotate(Function *f) {
