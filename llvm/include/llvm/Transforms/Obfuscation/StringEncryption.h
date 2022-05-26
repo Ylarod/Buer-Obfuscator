@@ -44,11 +44,9 @@ struct StringEncryption : public PassInfoMixin<StringEncryption> {
   GlobalVariable *EncryptedStringTable;
   std::set<GlobalVariable *> MaybeDeadGlobalVars;
 
-  StringEncryption(bool enable, IPObfuscationContext *IPO, ObfuscationOptions *Options) {
-    this->enable = enable;
-    this->IPO = IPO;
-    this->Options = Options;
-  }
+  StringEncryption(bool enable, IPObfuscationContext *IPO,
+                   ObfuscationOptions *Options)
+      : enable(enable), IPO(IPO), Options(Options) {}
 
   bool doFinalization(Module &) {
     for (CSPEntry *Entry : ConstantStringPool) {
@@ -86,6 +84,6 @@ struct StringEncryption : public PassInfoMixin<StringEncryption> {
                                 Value *Ptr);
 };
 
-}
+} // namespace llvm
 
 #endif

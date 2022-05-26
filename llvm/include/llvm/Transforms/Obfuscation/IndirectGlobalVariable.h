@@ -19,20 +19,17 @@ struct IndirectGlobalVariable : public PassInfoMixin<IndirectGlobalVariable> {
   std::map<GlobalVariable *, unsigned> GVNumbering;
   std::vector<GlobalVariable *> GlobalVariables;
 
-  IndirectGlobalVariable(bool enable, IPObfuscationContext *IPO, ObfuscationOptions *Options){
-    this->enable = enable;
-    this->IPO = IPO;
-    this->Options = Options;
-  }
+  IndirectGlobalVariable(bool enable, IPObfuscationContext *IPO,
+                         ObfuscationOptions *Options)
+      : enable(enable), IPO(IPO), Options(Options) {}
 
   void NumberGlobalVariable(Function &F);
 
   GlobalVariable *getIndirectGlobalVariables(Function &F, ConstantInt *EncKey);
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM);
-
 };
 
-}
+} // namespace llvm
 
 #endif

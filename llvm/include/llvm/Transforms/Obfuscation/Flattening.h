@@ -20,6 +20,7 @@
 #include "llvm/Transforms/Obfuscation/CryptoUtils.h"
 #include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
 #include "llvm/Transforms/Obfuscation/ObfuscationOptions.h"
+#include "llvm/Transforms/Utils/LowerSwitch.h"
 
 namespace llvm {
 
@@ -28,18 +29,14 @@ struct Flattening : public PassInfoMixin<Flattening> {
 
   IPObfuscationContext *IPO;
   ObfuscationOptions *Options;
-  CryptoUtils RandomEngine;
 
-  Flattening(bool enable, IPObfuscationContext *IPO, ObfuscationOptions *Options) {
-    this->enable = enable;
-    this->IPO = IPO;
-    this->Options = Options;
-  }
+  Flattening(bool enable, IPObfuscationContext *IPO,
+             ObfuscationOptions *Options)
+      : enable(enable), IPO(IPO), Options(Options) {}
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) const;
   bool flatten(Function *f, FunctionAnalysisManager &AM) const;
 };
-}
+} // namespace llvm
 
 #endif
-

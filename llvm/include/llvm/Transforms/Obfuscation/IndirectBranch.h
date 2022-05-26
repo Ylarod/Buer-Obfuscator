@@ -17,22 +17,19 @@ struct IndirectBranch : public PassInfoMixin<IndirectBranch> {
   IPObfuscationContext *IPO;
   ObfuscationOptions *Options;
   std::map<BasicBlock *, unsigned> BBNumbering;
-  std::vector<BasicBlock *> BBTargets;        //all conditional branch targets
+  std::vector<BasicBlock *> BBTargets; // all conditional branch targets
 
-  IndirectBranch(bool enable, IPObfuscationContext *IPO, ObfuscationOptions *Options) {
-    this->enable = enable;
-    this->IPO = IPO;
-    this->Options = Options;
-  }
+  IndirectBranch(bool enable, IPObfuscationContext *IPO,
+                 ObfuscationOptions *Options)
+      : enable(enable), IPO(IPO), Options(Options) {}
 
   void NumberBasicBlock(Function &F);
 
   GlobalVariable *getIndirectTargets(Function &F, ConstantInt *EncKey);
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM);
-
 };
 
-}
+} // namespace llvm
 
 #endif

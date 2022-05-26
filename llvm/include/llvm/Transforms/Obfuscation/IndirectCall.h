@@ -19,19 +19,16 @@ struct IndirectCall : public PassInfoMixin<IndirectCall> {
   std::vector<CallInst *> CallSites;
   std::vector<Function *> Callees;
 
-  IndirectCall(bool enable, IPObfuscationContext *IPO, ObfuscationOptions *Options) {
-    this->enable = enable;
-    this->IPO = IPO;
-    this->Options = Options;
-  }
+  IndirectCall(bool enable, IPObfuscationContext *IPO,
+               ObfuscationOptions *Options)
+      : enable(enable), IPO(IPO), Options(Options) {}
 
   void NumberCallees(Function &F);
 
   GlobalVariable *getIndirectCallees(Function &F, ConstantInt *EncKey);
 
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM);
-
 };
-}
+} // namespace llvm
 
 #endif
