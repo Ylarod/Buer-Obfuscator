@@ -11,6 +11,10 @@ void fixStack(Function &F);
 std::string readAnnotate(Function *f);
 bool toObfuscate(bool flag, Function *f, std::string attribute);
 void LowerConstantExpr(Function &F);
+void printInst(Instruction* ins);
+void printBB(BasicBlock* BB);
+void printFunction(Function* f);
+void printModule(Module* m);
 }
 
 #endif
