@@ -2,18 +2,18 @@
 // Created by Ylarod on 2022/5/24.
 //
 
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/Support/FileSystem.h"
+#include "include/ObfuscatePlugin.h"
+#include "include/Flattening.h"
+#include "include/HelloWorld.h"
+#include "include/IPObfuscationContext.h"
+#include "include/IndirectBranch.h"
+#include "include/IndirectCall.h"
+#include "include/IndirectGlobalVariable.h"
+#include "include/StringEncryption.h"
 #include "llvm/Support/CommandLine.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
-#include "llvm/Transforms/Obfuscation/ObfuscatePlugin.h"
-#include "llvm/Transforms/Obfuscation/HelloWorld.h"
-#include "llvm/Transforms/Obfuscation/IndirectBranch.h"
-#include "llvm/Transforms/Obfuscation/IndirectCall.h"
-#include "llvm/Transforms/Obfuscation/IndirectGlobalVariable.h"
-#include "llvm/Transforms/Obfuscation/Flattening.h"
-#include "llvm/Transforms/Obfuscation/StringEncryption.h"
-#include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
 

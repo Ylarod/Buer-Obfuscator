@@ -1,15 +1,15 @@
+#include "include/IndirectBranch.h"
+#include "include/CryptoUtils.h"
+#include "include/IPObfuscationContext.h"
+#include "include/ObfuscationOptions.h"
+#include "include/Utils.h"
+#include "llvm/Analysis/CFG.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/Transforms/Obfuscation/IndirectBranch.h"
-#include "llvm/Transforms/Obfuscation/ObfuscationOptions.h"
-#include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
-#include "llvm/Transforms/Obfuscation/Utils.h"
-#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
+#include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/ModuleUtils.h"
-#include "llvm/Transforms/Scalar.h"
-#include "llvm/Analysis/CFG.h"
 
 #include <random>
 

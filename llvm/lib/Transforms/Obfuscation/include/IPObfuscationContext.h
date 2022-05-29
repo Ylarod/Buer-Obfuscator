@@ -1,6 +1,7 @@
 #ifndef OBFUSCATION_IPOBFUSCATIONCONTEXT_H
 #define OBFUSCATION_IPOBFUSCATIONCONTEXT_H
 
+#include "CryptoUtils.h"
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
@@ -8,7 +9,6 @@
 #include "llvm/Pass.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
-#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
 #include <set>
 
 // Namespace

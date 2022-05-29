@@ -1,12 +1,12 @@
 #ifndef OBFUSCATION_INDIRECT_GLOBAL_VARIABLE_H
 #define OBFUSCATION_INDIRECT_GLOBAL_VARIABLE_H
 
+#include "CryptoUtils.h"
+#include "IPObfuscationContext.h"
+#include "ObfuscationOptions.h"
 #include "llvm/Pass.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
-#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
-#include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
-#include "llvm/Transforms/Obfuscation/ObfuscationOptions.h"
 
 // Namespace
 namespace llvm {

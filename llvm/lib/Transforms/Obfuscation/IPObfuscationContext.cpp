@@ -1,10 +1,9 @@
-#include "llvm/Transforms/Obfuscation/Utils.h"
-#include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/DebugInfo.h"
-#include "llvm/Support/Debug.h"
+#include "include/IPObfuscationContext.h"
+#include "include/Utils.h"
 #include "llvm/IR/AbstractCallSite.h"
-
+#include "llvm/IR/DebugInfo.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/Support/Debug.h"
 
 #define DEBUG_TYPE "ipobf"
 

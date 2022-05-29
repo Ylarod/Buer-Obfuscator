@@ -1,8 +1,8 @@
 #ifndef OBFUSCATION_OBFUSCATIONOPTIONS_H
 #define OBFUSCATION_OBFUSCATIONOPTIONS_H
 
+#include "llvm/Support/YAMLParser.h"
 #include <set>
-#include <llvm/Support/YAMLParser.h>
 
 namespace llvm {
 

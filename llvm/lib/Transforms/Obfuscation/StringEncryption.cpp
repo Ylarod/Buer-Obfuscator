@@ -1,19 +1,19 @@
-#include "llvm/Transforms/Obfuscation/Utils.h"
-#include "llvm/Transforms/Obfuscation/ObfuscationOptions.h"
-#include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
-#include "llvm/Transforms/Obfuscation/StringEncryption.h"
-#include "llvm/Transforms/Utils/GlobalStatus.h"
-#include "llvm/IR/LLVMContext.h"
+#include "include/StringEncryption.h"
+#include "include/CryptoUtils.h"
+#include "include/IPObfuscationContext.h"
+#include "include/ObfuscationOptions.h"
+#include "include/Utils.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/LLVMContext.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
+#include "llvm/Transforms/Utils/GlobalStatus.h"
+#include <algorithm>
+#include <iostream>
 #include <map>
 #include <set>
-#include <iostream>
-#include <algorithm>
 
 #define DEBUG_TYPE "string-encryption"
 

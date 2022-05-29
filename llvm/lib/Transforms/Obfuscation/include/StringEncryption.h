@@ -1,13 +1,13 @@
 #ifndef OBFUSCATION_STRING_ENCRYPTION_H
 #define OBFUSCATION_STRING_ENCRYPTION_H
 
+#include "CryptoUtils.h"
+#include "IPObfuscationContext.h"
+#include "ObfuscationOptions.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/Pass.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
-#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
-#include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
-#include "llvm/Transforms/Obfuscation/ObfuscationOptions.h"
 
 namespace llvm {
 

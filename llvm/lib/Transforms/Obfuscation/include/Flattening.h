@@ -14,12 +14,12 @@
 #ifndef _FLATTENING_INCLUDES_
 #define _FLATTENING_INCLUDES_
 
+#include "CryptoUtils.h"
+#include "IPObfuscationContext.h"
+#include "ObfuscationOptions.h"
 #include "llvm/Pass.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
-#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
-#include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
-#include "llvm/Transforms/Obfuscation/ObfuscationOptions.h"
 #include "llvm/Transforms/Utils/LowerSwitch.h"
 
 namespace llvm {

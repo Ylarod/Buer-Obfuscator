@@ -10,10 +10,10 @@
 // This file implements the flattening pass
 //
 //===----------------------------------------------------------------------===//
-#include "llvm/Transforms/Obfuscation/Utils.h"
-#include "llvm/Transforms/Obfuscation/Flattening.h"
-#include "llvm/Transforms/Obfuscation/IPObfuscationContext.h"
-#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
+#include "include/Flattening.h"
+#include "include/CryptoUtils.h"
+#include "include/IPObfuscationContext.h"
+#include "include/Utils.h"
 #include "llvm/ADT/Statistic.h"
 
 #define DEBUG_TYPE "flattening"

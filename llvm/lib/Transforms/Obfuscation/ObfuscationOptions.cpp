@@ -1,9 +1,9 @@
+#include "include/ObfuscationOptions.h"
+#include "llvm/ADT/SmallString.h"
 #include "llvm/Support/ErrorOr.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/SourceMgr.h"
-#include "llvm/ADT/SmallString.h"
-#include "llvm/Transforms/Obfuscation/ObfuscationOptions.h"
-#include "llvm/Support/FileSystem.h"
 #include <string>
 
 using namespace llvm;
