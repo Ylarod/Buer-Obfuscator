@@ -10,6 +10,14 @@ namespace llvm {
         int enable;
     };
 
+    struct PassNameObf{
+        int enable;
+        std::string prefix;
+        std::string suffix;
+        std::string charset;
+        int length;
+    };
+
     struct ObfuscationOptions {
         explicit ObfuscationOptions(const Twine &FileName);
 
@@ -20,6 +28,18 @@ namespace llvm {
         void dump() const;
 
         PassHelloWorld HelloWorld{};
+
+        PassNameObf FuncNameObf{
+            .prefix = "Buer_",
+            .charset = "oO0",
+            .length = 16,
+        };
+
+        PassNameObf GVNameObf{
+            .prefix = "Buer_",
+            .charset = "iIl1",
+            .length = 16,
+        };
 
     private:
         void handleRoot(yaml::Node *n);

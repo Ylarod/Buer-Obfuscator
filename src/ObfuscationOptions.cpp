@@ -7,6 +7,7 @@
 #include <llvm/Support/CommandLine.h>
 #include "utils/CryptoUtils.h"
 #include <fmt/core.h>
+#include <fmt/color.h>
 #include <string>
 #include <sstream>
 
@@ -17,6 +18,27 @@ namespace llvm {
     cl::opt<int> HelloWorldEnable("hello", cl::init(0), cl::desc("Enable the HelloWorld pass"));
     cl::opt<std::string> RandomSeed("obf-seed", cl::init(""),
                                     cl::desc("random seed, 32bit hex, 0x is accepted"), cl::Optional);
+
+    // 函数名混淆
+    cl::opt<int> FuncNameObfEnable("obf-fn", cl::init(0), cl::desc("Enable the FunctionNameObf pass"));
+    cl::opt<std::string> FuncNameObfPrefix("obf-fn-p", cl::init("Buer_"),
+                                          cl::desc("Custom prefix"), cl::Optional);
+    cl::opt<std::string> FuncNameObfSuffix("obf-fn-s", cl::init(""),
+                                          cl::desc("Custom suffix"), cl::Optional);
+    cl::opt<std::string> FuncNameObfChars("obf-fn-c", cl::init("oO0"),
+                                          cl::desc("Custom obf charset"), cl::Optional);
+    cl::opt<int> FuncNameObfLength("obf-fn-l", cl::init(16), cl::desc("Custom length"));
+
+    // 全局变量名混淆
+    cl::opt<int> GVNameObfEnable("obf-gvn", cl::init(0), cl::desc("Enable the GlobalVariableNameObf pass"));
+    cl::opt<std::string> GVNameObfPrefix("obf-gvn-p", cl::init("Buer_"),
+                                           cl::desc("Custom prefix"), cl::Optional);
+    cl::opt<std::string> GVNameObfSuffix("obf-gvn-s", cl::init(""),
+                                           cl::desc("Custom suffix"), cl::Optional);
+    cl::opt<std::string> GVNameObfChars("obf-gvn-c", cl::init("iIl1"),
+                                          cl::desc("Custom obf charset"), cl::Optional);
+    cl::opt<int> GVNameObfLength("obf-gvn-l", cl::init(16), cl::desc("Custom length"));
+
 
     ObfuscationOptions::ObfuscationOptions(const Twine &FileName) {
         if (sys::fs::exists(FileName)) {
@@ -35,13 +57,55 @@ namespace llvm {
         }else{
             crypto->prng_seed();
         }
+        // 函数名混淆
+        if (FuncNameObfEnable.getNumOccurrences()){
+            FuncNameObf.enable = FuncNameObfEnable;
+        }
+        if (FuncNameObfPrefix.getNumOccurrences()){
+            FuncNameObf.prefix = FuncNameObfPrefix;
+        }
+        if (FuncNameObfSuffix.getNumOccurrences()){
+            FuncNameObf.suffix = FuncNameObfSuffix;
+        }
+        if (FuncNameObfChars.getNumOccurrences()){
+            FuncNameObf.charset = FuncNameObfChars;
+        }
+        if (FuncNameObfLength.getNumOccurrences()){
+            FuncNameObf.length = FuncNameObfLength;
+        }
+        // 全局变量名混淆
+        if (GVNameObfEnable.getNumOccurrences()){
+            GVNameObf.enable = GVNameObfEnable;
+        }
+        if (GVNameObfPrefix.getNumOccurrences()){
+            GVNameObf.prefix = GVNameObfPrefix;
+        }
+        if (GVNameObfSuffix.getNumOccurrences()){
+            GVNameObf.suffix = GVNameObfSuffix;
+        }
+        if (GVNameObfChars.getNumOccurrences()){
+            GVNameObf.charset = GVNameObfChars;
+        }
+        if (GVNameObfLength.getNumOccurrences()){
+            GVNameObf.length = GVNameObfLength;
+        }
     }
 
     void ObfuscationOptions::checkOptions() const {
-        if (HelloWorld.enable > 2 || HelloWorld.enable < 0){
-            errs() << "\033[1;31m" << "HelloWorld.enable: 值只能为 0(关闭) 1(白名单模式) 2(黑名单模式) 之一\n" << "\033[0m";
-            abort();
-        }
+        auto red = fmt::fg(fmt::color::red);
+#define echo_err(msg) errs() << fmt::format(red, msg)
+#define check_enable(value, name) do { \
+        if (value > 2 || value < 0){ \
+            echo_err(name ".enable: 值只能为 0(关闭) 1(白名单模式) 2(黑名单模式) 之一\n"); \
+            abort(); \
+        } \
+        } while (false)
+
+        check_enable(HelloWorld.enable, "HelloWorld");
+        check_enable(FuncNameObf.enable, "FunctionNameObf");
+        check_enable(GVNameObf.enable, "GlobalVariableNameObf");
+#undef echo_err
+#undef check_enable
     }
 
     static StringRef getNodeString(yaml::Node *n) {
@@ -118,8 +182,9 @@ namespace llvm {
     }
 
     void ObfuscationOptions::dump() const {
-        dbgs() << "\033[1;31m" << "ObfuscationOptions:\n" << "\033[0m";
-        dbgs() << "\033[1;31m" << "Global:\n" << "\033[0m";
+        auto red = fmt::fg(fmt::color::red);
+        auto pink = fmt::fg(fmt::color::pink);
+        auto sky_blue = fmt::fg(fmt::color::sky_blue);
         std::stringstream seed_hex;
         auto* seed = (unsigned char*)crypto->get_seed();
         if (seed){
@@ -130,9 +195,35 @@ namespace llvm {
         }else{
             seed_hex << "Uninitialized";
         }
-        dbgs() << "\033[1;34m" << "\tRandomSeed: " << "\033[1;36m" << seed_hex.str() << "\n" << "\033[0m";
-        dbgs() << "\033[1;31m" << "HelloWorld:\n" << "\033[0m";
-        dbgs() << "\033[1;34m" << "\tEnable: " << "\033[1;36m" << HelloWorld.enable << "\n" << "\033[0m";
+#define echo_pass(name) dbgs() << fmt::format(red, name ":\n")
+#define echo_config(name, ...) dbgs() << fmt::format(pink, "\t" name ": ") << fmt::format(sky_blue, __VA_ARGS__) << "\n"
+#define enable_value(value) value == 0 ? "false" : value == 1 ? "true(whitelist)" : "true(blacklist)"
+#define echo_enable(value) echo_config("Enable", "{}", enable_value(value))
+
+        echo_pass("ObfuscationOptions");
+        echo_pass("Global");
+        echo_config("RandomSeed", seed_hex.str());
+
+        echo_pass("HelloWorld");
+        echo_enable(HelloWorld.enable);
+
+        echo_pass("FuncNameObf");
+        echo_enable(FuncNameObf.enable);
+        echo_config("Prefix", "{}", FuncNameObf.prefix);
+        echo_config("Suffix", "{}", FuncNameObf.suffix);
+        echo_config("Charset", "{}", FuncNameObf.charset);
+        echo_config("Length", "{}", FuncNameObf.length);
+
+        echo_pass("GlobalVariableNameObf");
+        echo_enable(GVNameObf.enable);
+        echo_config("Prefix", "{}", GVNameObf.prefix);
+        echo_config("Suffix", "{}", GVNameObf.suffix);
+        echo_config("Charset", "{}", GVNameObf.charset);
+        echo_config("Length", "{}", GVNameObf.length);
+
+#undef echo_pass
+#undef echo_config
+#undef echo_enable
     }
 
 }
