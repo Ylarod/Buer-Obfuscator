@@ -104,7 +104,7 @@ namespace llvm {
 
     bool toObfuscate(int flag, GlobalObject *go, const std::string& attribute) {
         const std::string& attr = attribute;
-        std::string attrNo = "no" + attr;
+        std::string attrNo = "no-" + attr;
 
         // Check if declaration
         if (go->isDeclaration()) {
