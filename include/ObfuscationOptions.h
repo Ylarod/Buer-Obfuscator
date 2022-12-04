@@ -34,13 +34,13 @@ namespace llvm {
         PassNameObf FuncNameObf{
             .prefix = "Buer_",
             .charset = "oO0",
-            .length = 16,
+            .length = 32,
         };
 
         PassNameObf GVNameObf{
             .prefix = "Buer_",
             .charset = "iIl1",
-            .length = 16,
+            .length = 32,
         };
 
     private:

@@ -28,7 +28,7 @@ namespace llvm {
                                           cl::desc("Custom suffix"), cl::Optional);
     cl::opt<std::string> FuncNameObfChars("obf-fn-c", cl::init("oO0"),
                                           cl::desc("Custom obf charset"), cl::Optional);
-    cl::opt<int> FuncNameObfLength("obf-fn-l", cl::init(16), cl::desc("Custom length"));
+    cl::opt<int> FuncNameObfLength("obf-fn-l", cl::init(32), cl::desc("Custom length"));
 
     // 全局变量名混淆
     cl::opt<int> GVNameObfEnable("obf-gvn", cl::init(0), cl::desc("Enable the GlobalVariableNameObf pass"));
@@ -38,7 +38,7 @@ namespace llvm {
                                            cl::desc("Custom suffix"), cl::Optional);
     cl::opt<std::string> GVNameObfChars("obf-gvn-c", cl::init("iIl1"),
                                           cl::desc("Custom obf charset"), cl::Optional);
-    cl::opt<int> GVNameObfLength("obf-gvn-l", cl::init(16), cl::desc("Custom length"));
+    cl::opt<int> GVNameObfLength("obf-gvn-l", cl::init(32), cl::desc("Custom length"));
 
 
     ObfuscationOptions::ObfuscationOptions() { // 获取home目录失败才执行
