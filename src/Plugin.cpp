@@ -41,7 +41,9 @@ static ObfuscationOptions *getOptions() {
 void obfuscatePluginCallback(llvm::ModulePassManager &PM,
                              llvm::OptimizationLevel Level) {
     ObfuscationOptions *Options = getOptions();
-    Options->dump();
+    if (Options->verbose){
+        Options->dump();
+    }
     FunctionPassManager FPM;
     FPM.addPass(HelloWorld(Options->HelloWorld.enable));
     PM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));

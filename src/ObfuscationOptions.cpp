@@ -18,6 +18,7 @@ namespace llvm {
     cl::opt<int> HelloWorldEnable("hello", cl::init(0), cl::desc("Enable the HelloWorld pass"));
     cl::opt<std::string> RandomSeed("obf-seed", cl::init(""),
                                     cl::desc("random seed, 32bit hex, 0x is accepted"), cl::Optional);
+    cl::opt<bool> Verbose("obf-verbose", cl::init(false), cl::desc("Print obf log"));
 
     // 函数名混淆
     cl::opt<int> FuncNameObfEnable("obf-fn", cl::init(0), cl::desc("Enable the FunctionNameObf pass"));
@@ -40,6 +41,11 @@ namespace llvm {
     cl::opt<int> GVNameObfLength("obf-gvn-l", cl::init(16), cl::desc("Custom length"));
 
 
+    ObfuscationOptions::ObfuscationOptions() { // 获取home目录失败才执行
+        loadCommandLineArgs();
+        checkOptions();
+    }
+
     ObfuscationOptions::ObfuscationOptions(const Twine &FileName) {
         if (sys::fs::exists(FileName)) {
             parseOptions(FileName);
@@ -49,6 +55,9 @@ namespace llvm {
     }
 
     void ObfuscationOptions::loadCommandLineArgs(){
+        if (Verbose.getNumOccurrences()){
+            verbose = Verbose;
+        }
         if (HelloWorldEnable.getNumOccurrences()){
             HelloWorld.enable = HelloWorldEnable;
         }

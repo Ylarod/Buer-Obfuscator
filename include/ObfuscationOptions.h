@@ -21,11 +21,13 @@ namespace llvm {
     struct ObfuscationOptions {
         explicit ObfuscationOptions(const Twine &FileName);
 
-        explicit ObfuscationOptions() = default;
+        explicit ObfuscationOptions();
 
         bool skipFunction(const Twine &FName);
 
         void dump() const;
+
+        bool verbose = false;
 
         PassHelloWorld HelloWorld{};
 
