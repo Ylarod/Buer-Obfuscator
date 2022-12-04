@@ -17,9 +17,11 @@ PreservedAnalyses FuncNameObf::run(Module &M, ModuleAnalysisManager &) const {
         return PreservedAnalyses::all();
     }
     for (auto &F: M) {
-        if (!toObfuscate(config.enable, &F, "fno") AND_VERBOSE2){
-            outs() << fmt::format(fmt::fg(fmt::color::red),
-                                  "FuncNameObf: Ignore {}\n",F.getName().str());
+        if (!toObfuscate(config.enable, &F, "fno")){
+            IF_VERBOSE2{
+                outs() << fmt::format(fmt::fg(fmt::color::red),
+                                      "FuncNameObf: Ignore {}\n",F.getName().str());
+            }
             continue;
         }
 
