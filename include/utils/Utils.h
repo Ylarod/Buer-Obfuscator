@@ -14,7 +14,7 @@ namespace llvm {
 
     std::string readAnnotate(Function *f);
 
-    bool toObfuscate(int flag, Function *f, std::string attribute);
+    bool toObfuscate(int flag, Function *f, const std::string& attribute);
 
     void LowerConstantExpr(Function &F);
 
