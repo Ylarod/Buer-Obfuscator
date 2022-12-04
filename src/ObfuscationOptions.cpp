@@ -17,28 +17,38 @@ namespace llvm {
 
     static cl::opt<int> HelloWorldEnable("hello", cl::init(0), cl::desc("Enable the HelloWorld pass"));
     static cl::opt<std::string> RandomSeed("obf-seed", cl::init(""),
-                                    cl::desc("random seed, 32bit hex, 0x is accepted"), cl::Optional);
+                                           cl::desc("random seed, 32bit hex, 0x is accepted"), cl::Optional);
     static cl::opt<bool> Verbose("obf-verbose", cl::init(false), cl::desc("Print obf log"));
 
     // 函数名混淆
     static cl::opt<int> FuncNameObfEnable("obf-fn", cl::init(0), cl::desc("Enable the FunctionNameObf pass"));
     static cl::opt<std::string> FuncNameObfPrefix("obf-fn-p", cl::init("Buer_"),
-                                          cl::desc("Custom prefix"), cl::Optional);
+                                                  cl::desc("Custom prefix"), cl::Optional);
     static cl::opt<std::string> FuncNameObfSuffix("obf-fn-s", cl::init(""),
-                                          cl::desc("Custom suffix"), cl::Optional);
+                                                  cl::desc("Custom suffix"), cl::Optional);
     static cl::opt<std::string> FuncNameObfChars("obf-fn-c", cl::init("oO0"),
-                                          cl::desc("Custom obf charset"), cl::Optional);
-    static cl::opt<int> FuncNameObfLength("obf-fn-l", cl::init(32), cl::desc("Custom length"));
+                                                 cl::desc("Custom obf charset"), cl::Optional);
+    static cl::opt<int> FuncNameObfLength("obf-fn-l", cl::init(32),
+                                          cl::desc("Custom length"), cl::Optional);
 
     // 全局变量名混淆
     static cl::opt<int> GVNameObfEnable("obf-gvn", cl::init(0), cl::desc("Enable the GlobalVariableNameObf pass"));
     static cl::opt<std::string> GVNameObfPrefix("obf-gvn-p", cl::init("Buer_"),
-                                           cl::desc("Custom prefix"), cl::Optional);
+                                                cl::desc("Custom prefix"), cl::Optional);
     static cl::opt<std::string> GVNameObfSuffix("obf-gvn-s", cl::init(""),
-                                           cl::desc("Custom suffix"), cl::Optional);
+                                                cl::desc("Custom suffix"), cl::Optional);
     static cl::opt<std::string> GVNameObfChars("obf-gvn-c", cl::init("iIl1"),
-                                          cl::desc("Custom obf charset"), cl::Optional);
-    static cl::opt<int> GVNameObfLength("obf-gvn-l", cl::init(32), cl::desc("Custom length"));
+                                               cl::desc("Custom obf charset"), cl::Optional);
+    static cl::opt<int> GVNameObfLength("obf-gvn-l", cl::init(32),
+                                        cl::desc("Custom length"), cl::Optional);
+
+    // 函数包装器
+    static cl::opt<int> FunctionWrapperEnable("obf-fw", cl::init(0),
+                                              cl::desc("Enable the FunctionWrapper pass"));
+    static cl::opt<int> FunctionWrapperProb("obf-fw-p", cl::init(100),
+                                            cl::desc("Obfuscate probability [%]"), cl::Optional);
+    static cl::opt<int> FunctionWrapperTimes("obf-fw-t", cl::init(5),
+                                             cl::desc("Obfuscate times"), cl::Optional);
 
 
     ObfuscationOptions::ObfuscationOptions() { // 获取home目录失败才执行
@@ -54,49 +64,59 @@ namespace llvm {
         checkOptions();
     }
 
-    void ObfuscationOptions::loadCommandLineArgs(){
-        if (Verbose.getNumOccurrences()){
+    void ObfuscationOptions::loadCommandLineArgs() {
+        if (Verbose.getNumOccurrences()) {
             verbose = Verbose;
         }
-        if (HelloWorldEnable.getNumOccurrences()){
+        if (HelloWorldEnable.getNumOccurrences()) {
             HelloWorld.enable = HelloWorldEnable;
         }
-        if (RandomSeed.getNumOccurrences()){
+        if (RandomSeed.getNumOccurrences()) {
             crypto->prng_seed(RandomSeed);
-        }else{
+        } else {
             crypto->prng_seed();
         }
         // 函数名混淆
-        if (FuncNameObfEnable.getNumOccurrences()){
+        if (FuncNameObfEnable.getNumOccurrences()) {
             FuncNameObf.enable = FuncNameObfEnable;
         }
-        if (FuncNameObfPrefix.getNumOccurrences()){
+        if (FuncNameObfPrefix.getNumOccurrences()) {
             FuncNameObf.prefix = FuncNameObfPrefix;
         }
-        if (FuncNameObfSuffix.getNumOccurrences()){
+        if (FuncNameObfSuffix.getNumOccurrences()) {
             FuncNameObf.suffix = FuncNameObfSuffix;
         }
-        if (FuncNameObfChars.getNumOccurrences()){
+        if (FuncNameObfChars.getNumOccurrences()) {
             FuncNameObf.charset = FuncNameObfChars;
         }
-        if (FuncNameObfLength.getNumOccurrences()){
+        if (FuncNameObfLength.getNumOccurrences()) {
             FuncNameObf.length = FuncNameObfLength;
         }
         // 全局变量名混淆
-        if (GVNameObfEnable.getNumOccurrences()){
+        if (GVNameObfEnable.getNumOccurrences()) {
             GVNameObf.enable = GVNameObfEnable;
         }
-        if (GVNameObfPrefix.getNumOccurrences()){
+        if (GVNameObfPrefix.getNumOccurrences()) {
             GVNameObf.prefix = GVNameObfPrefix;
         }
-        if (GVNameObfSuffix.getNumOccurrences()){
+        if (GVNameObfSuffix.getNumOccurrences()) {
             GVNameObf.suffix = GVNameObfSuffix;
         }
-        if (GVNameObfChars.getNumOccurrences()){
+        if (GVNameObfChars.getNumOccurrences()) {
             GVNameObf.charset = GVNameObfChars;
         }
-        if (GVNameObfLength.getNumOccurrences()){
+        if (GVNameObfLength.getNumOccurrences()) {
             GVNameObf.length = GVNameObfLength;
+        }
+        // 函数包装器
+        if (FunctionWrapperEnable.getNumOccurrences()) {
+            FunctionWrapper.enable = FunctionWrapperEnable;
+        }
+        if (FunctionWrapperProb.getNumOccurrences()) {
+            FunctionWrapper.prob = FunctionWrapperProb;
+        }
+        if (FunctionWrapperTimes.getNumOccurrences()) {
+            FunctionWrapper.times = FunctionWrapperTimes;
         }
     }
 
@@ -113,6 +133,7 @@ namespace llvm {
         check_enable(HelloWorld.enable, "HelloWorld");
         check_enable(FuncNameObf.enable, "FunctionNameObf");
         check_enable(GVNameObf.enable, "GlobalVariableNameObf");
+        check_enable(FunctionWrapper.enable, "FunctionWrapper");
 #undef echo_err
 #undef check_enable
     }
@@ -152,7 +173,7 @@ namespace llvm {
     void ObfuscationOptions::handleHelloWorld(yaml::MappingNode *n) {
         for (auto &i: *n) {
             StringRef K = getNodeString(i.getKey());
-            if (K == "enable"){
+            if (K == "enable") {
                 HelloWorld.enable = static_cast<int>(getIntVal(i.getValue()));
             }
         }
@@ -161,15 +182,15 @@ namespace llvm {
     void ObfuscationOptions::handleGVNameObf(yaml::MappingNode *n) {
         for (auto &i: *n) {
             StringRef K = getNodeString(i.getKey());
-            if (K == "enable"){
+            if (K == "enable") {
                 GVNameObf.enable = static_cast<int>(getIntVal(i.getValue()));
-            }else if(K == "prefix"){
+            } else if (K == "prefix") {
                 GVNameObf.prefix = getNodeString(i.getValue()).str();
-            }else if(K == "suffix"){
+            } else if (K == "suffix") {
                 GVNameObf.suffix = getNodeString(i.getValue()).str();
-            }else if(K == "charset"){
+            } else if (K == "charset") {
                 GVNameObf.charset = getNodeString(i.getValue()).str();
-            }else if(K == "length"){
+            } else if (K == "length") {
                 GVNameObf.length = static_cast<int>(getIntVal(i.getValue()));
             }
         }
@@ -178,16 +199,30 @@ namespace llvm {
     void ObfuscationOptions::handleFuncNameObf(yaml::MappingNode *n) {
         for (auto &i: *n) {
             StringRef K = getNodeString(i.getKey());
-            if (K == "enable"){
+            if (K == "enable") {
                 FuncNameObf.enable = static_cast<int>(getIntVal(i.getValue()));
-            }else if(K == "prefix"){
+            } else if (K == "prefix") {
                 FuncNameObf.prefix = getNodeString(i.getValue()).str();
-            }else if(K == "suffix"){
+            } else if (K == "suffix") {
                 FuncNameObf.suffix = getNodeString(i.getValue()).str();
-            }else if(K == "charset"){
+            } else if (K == "charset") {
                 FuncNameObf.charset = getNodeString(i.getValue()).str();
-            }else if(K == "length"){
+            } else if (K == "length") {
                 FuncNameObf.length = static_cast<int>(getIntVal(i.getValue()));
+            }
+        }
+    }
+
+
+    void ObfuscationOptions::handleFunctionWrapper(yaml::MappingNode *n) {
+        for (auto &i: *n) {
+            StringRef K = getNodeString(i.getKey());
+            if (K == "enable") {
+                FunctionWrapper.enable = static_cast<int>(getIntVal(i.getValue()));
+            } else if (K == "prob") {
+                FunctionWrapper.prob = static_cast<int>(getIntVal(i.getValue()));
+            } else if (K == "times") {
+                FunctionWrapper.times = static_cast<int>(getIntVal(i.getValue()));
             }
         }
     }
@@ -198,12 +233,14 @@ namespace llvm {
         if (auto *mn = dyn_cast<yaml::MappingNode>(n)) {
             for (auto &i: *mn) {
                 StringRef K = getNodeString(i.getKey());
-                if (K == "HelloWorld"){
+                if (K == "HelloWorld") {
                     handleHelloWorld(dyn_cast<yaml::MappingNode>(i.getValue()));
-                } else if (K == "FuncNameObf"){
+                } else if (K == "FuncNameObf") {
                     handleFuncNameObf(dyn_cast<yaml::MappingNode>(i.getValue()));
-                } else if (K == "GVNameObf"){
+                } else if (K == "GVNameObf") {
                     handleGVNameObf(dyn_cast<yaml::MappingNode>(i.getValue()));
+                } else if (K == "FunctionWrapper") {
+                    handleFunctionWrapper(dyn_cast<yaml::MappingNode>(i.getValue()));
                 }
             }
         }
@@ -233,13 +270,13 @@ namespace llvm {
         auto pink = fmt::fg(fmt::color::pink);
         auto sky_blue = fmt::fg(fmt::color::sky_blue);
         std::stringstream seed_hex;
-        auto* seed = (unsigned char*)crypto->get_seed();
-        if (seed){
+        auto *seed = (unsigned char *) crypto->get_seed();
+        if (seed) {
             seed_hex << "0x";
             for (int i = 0; i < 16; i++) {
                 seed_hex << fmt::format("{:02x}", seed[i]);
             }
-        }else{
+        } else {
             seed_hex << "Uninitialized";
         }
 #define echo_pass(name) dbgs() << fmt::format(red, name ":\n")
