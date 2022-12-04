@@ -48,6 +48,10 @@ namespace llvm {
 
         void handleHelloWorld(yaml::MappingNode *n);
 
+        void handleFuncNameObf(yaml::MappingNode *n);
+
+        void handleGVNameObf(yaml::MappingNode *n);
+
         bool parseOptions(const Twine &FileName);
 
         void loadCommandLineArgs();

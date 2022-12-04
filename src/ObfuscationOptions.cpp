@@ -153,7 +153,41 @@ namespace llvm {
         for (auto &i: *n) {
             StringRef K = getNodeString(i.getKey());
             if (K == "enable"){
-                HelloWorld.enable = static_cast<bool>(getIntVal(i.getValue()));
+                HelloWorld.enable = static_cast<int>(getIntVal(i.getValue()));
+            }
+        }
+    }
+
+    void ObfuscationOptions::handleGVNameObf(yaml::MappingNode *n) {
+        for (auto &i: *n) {
+            StringRef K = getNodeString(i.getKey());
+            if (K == "enable"){
+                GVNameObf.enable = static_cast<int>(getIntVal(i.getValue()));
+            }else if(K == "prefix"){
+                GVNameObf.prefix = getNodeString(i.getValue()).str();
+            }else if(K == "suffix"){
+                GVNameObf.suffix = getNodeString(i.getValue()).str();
+            }else if(K == "charset"){
+                GVNameObf.charset = getNodeString(i.getValue()).str();
+            }else if(K == "length"){
+                GVNameObf.length = static_cast<int>(getIntVal(i.getValue()));
+            }
+        }
+    }
+
+    void ObfuscationOptions::handleFuncNameObf(yaml::MappingNode *n) {
+        for (auto &i: *n) {
+            StringRef K = getNodeString(i.getKey());
+            if (K == "enable"){
+                FuncNameObf.enable = static_cast<int>(getIntVal(i.getValue()));
+            }else if(K == "prefix"){
+                FuncNameObf.prefix = getNodeString(i.getValue()).str();
+            }else if(K == "suffix"){
+                FuncNameObf.suffix = getNodeString(i.getValue()).str();
+            }else if(K == "charset"){
+                FuncNameObf.charset = getNodeString(i.getValue()).str();
+            }else if(K == "length"){
+                FuncNameObf.length = static_cast<int>(getIntVal(i.getValue()));
             }
         }
     }
@@ -166,6 +200,10 @@ namespace llvm {
                 StringRef K = getNodeString(i.getKey());
                 if (K == "HelloWorld"){
                     handleHelloWorld(dyn_cast<yaml::MappingNode>(i.getValue()));
+                } else if (K == "FuncNameObf"){
+                    handleFuncNameObf(dyn_cast<yaml::MappingNode>(i.getValue()));
+                } else if (K == "GVNameObf"){
+                    handleGVNameObf(dyn_cast<yaml::MappingNode>(i.getValue()));
                 }
             }
         }
