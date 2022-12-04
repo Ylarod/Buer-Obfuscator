@@ -17,7 +17,7 @@ PreservedAnalyses FuncNameObf::run(Module &M, ModuleAnalysisManager &) const {
         return PreservedAnalyses::all();
     }
     for (auto &F: M) {
-        if (!toObfuscate(config.enable, &F, "fno")){
+        if (!toObfuscate(config.enable, &F, "fno") AND_VERBOSE2){
             outs() << fmt::format(fmt::fg(fmt::color::red),
                                   "FuncNameObf: Ignore {}\n",F.getName().str());
             continue;
@@ -38,7 +38,7 @@ PreservedAnalyses FuncNameObf::run(Module &M, ModuleAnalysisManager &) const {
         F.setName(Twine(ss.str())); // 重命名
 
         StringRef newName = F.getName();
-        if (Options->verbose){
+        IF_VERBOSE{
             outs() << fmt::format(fmt::fg(fmt::color::sky_blue),
                                   "FuncNameObf: {} => {}\n", origName.str(), newName.str());
         }

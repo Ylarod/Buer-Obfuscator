@@ -4,6 +4,13 @@
 #include <llvm/Support/YAMLParser.h>
 #include <set>
 
+#define IF_VERBOSE if(Options->verbose)
+#define AND_VERBOSE && (Options->verbose)
+#define IF_VERBOSE2 if(Options->verbose > 2)
+#define AND_VERBOSE2 && (Options->verbose > 2)
+#define IF_VERBOSE3 if(Options->verbose > 3)
+#define AND_VERBOSE3 && (Options->verbose > 3)
+
 namespace llvm {
 
     struct PassHelloWorld {

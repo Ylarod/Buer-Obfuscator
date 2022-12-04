@@ -17,7 +17,7 @@ PreservedAnalyses GVNameObf::run(Module &M, ModuleAnalysisManager &) const {
         return PreservedAnalyses::all();
     }
     for (auto &GV: M.globals()) {
-        if (!toObfuscate(config.enable, &GV, "gvn")){
+        if (!toObfuscate(config.enable, &GV, "gvn") AND_VERBOSE2){
             outs() << fmt::format(fmt::fg(fmt::color::red),
                                   "GVNameObf: Ignore {}\n", GV.getName().str());
             continue;
@@ -44,7 +44,7 @@ PreservedAnalyses GVNameObf::run(Module &M, ModuleAnalysisManager &) const {
         GV.setName(Twine(ss.str())); // 重命名
 
         StringRef newName = GV.getName();
-        if (Options->verbose){
+        IF_VERBOSE{
             outs() << fmt::format(fmt::fg(fmt::color::sky_blue),
                                   "GVNameObf: {} => {}\n", origName.str(), newName.str());
             outs() << GV.getSection() << "\n";
