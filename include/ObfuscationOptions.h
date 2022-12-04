@@ -33,7 +33,7 @@ namespace llvm {
 
         void dump() const;
 
-        bool verbose = false;
+        int verbose = false;
 
         PassHelloWorld HelloWorld{};
 

@@ -18,7 +18,7 @@ namespace llvm {
     static cl::opt<int> HelloWorldEnable("hello", cl::init(0), cl::desc("Enable the HelloWorld pass"));
     static cl::opt<std::string> RandomSeed("obf-seed", cl::init(""),
                                            cl::desc("random seed, 32bit hex, 0x is accepted"), cl::Optional);
-    static cl::opt<bool> Verbose("obf-verbose", cl::init(false), cl::desc("Print obf log"));
+    static cl::opt<int> Verbose("obf-verbose", cl::init(0), cl::desc("Print obf log"));
 
     // 函数名混淆
     static cl::opt<int> FuncNameObfEnable("obf-fn", cl::init(0), cl::desc("Enable the FunctionNameObf pass"));
