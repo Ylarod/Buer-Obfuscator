@@ -6,7 +6,8 @@ add_library(Obfuscator MODULE # 生成动态库文件
         utils/Utils.cpp
 
         core/HelloWorld.cpp
-        )
+        core/FuncNameObf.cpp
+        core/GVNameObf.cpp)
 
 target_link_libraries(Obfuscator
         fmt)

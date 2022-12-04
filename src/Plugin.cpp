@@ -5,6 +5,8 @@
 #include "Plugin.h"
 #include "ObfuscationOptions.h"
 #include "core/HelloWorld.h"
+#include "core/FuncNameObf.h"
+#include "core/GVNameObf.h"
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Path.h>
@@ -48,6 +50,8 @@ void obfuscatePluginCallback(llvm::ModulePassManager &PM,
     FPM.addPass(HelloWorld(Options->HelloWorld.enable));
     PM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
     PM.addPass(HelloWorld(Options->HelloWorld.enable));
+    PM.addPass(FuncNameObf(Options));
+    PM.addPass(GVNameObf(Options));
 }
 
 /* New PM Registration for static plugin */
