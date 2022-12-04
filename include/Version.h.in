@@ -1,0 +1,12 @@
+//
+// Created by Ylarod on 2022/12/4.
+//
+
+#ifndef OBFUSCATOR_VERSION_H
+#define OBFUSCATOR_VERSION_H
+
+static const int obf_version_code = @COMMIT_COUNT@;
+static const char* obf_version_name = "@COMMIT_VERSION@";
+static const char* obf_version_hash = "@COMMIT_HASH@";
+
+#endif //OBFUSCATOR_VERSION_H
