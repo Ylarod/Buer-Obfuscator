@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <string>
+#include <llvm/Support/ManagedStatic.h>
 
 namespace llvm {
 
@@ -36,6 +37,8 @@ namespace llvm {
         void get_bytes(char *buffer, int len);
 
         char get_char();
+
+        void prng_seed();
 
         void prng_seed(const std::string &seed);
 
@@ -75,8 +78,6 @@ namespace llvm {
 
         static void aes_encrypt(char *out, const char *in, const uint32_t *ks);
 
-        void prng_seed();
-
         void inc_ctr();
 
         void populate_pool();
@@ -90,6 +91,8 @@ namespace llvm {
         static int sha256_process(sha256_state *md, const unsigned char *in,
                                   unsigned long inlen);
     };
+
+    extern ManagedStatic<CryptoUtils> crypto;
 } // namespace llvm
 
 #endif // LLVM_CryptoUtils_H

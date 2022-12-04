@@ -43,6 +43,10 @@ STATISTIC(statsAESEncrypt, "h. Number of calls to aes_encrypt ()");
 
 using namespace llvm;
 
+namespace llvm{
+    ManagedStatic<CryptoUtils> crypto;
+}
+
 CryptoUtils::CryptoUtils() { seeded = false; }
 
 unsigned CryptoUtils::scramble32(const unsigned in, const char key[16]) {
@@ -94,6 +98,7 @@ void CryptoUtils::prng_seed(const std::string &_seed) {
         errs() << Twine(
                 "The AES-CTR PRNG seeding mechanism is expecting a 16-byte value "
                 "expressed in hexadecimal, like DEAD....BEEF");
+        abort();
     }
 
     seed = _seed;

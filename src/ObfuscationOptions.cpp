@@ -5,13 +5,18 @@
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/CommandLine.h>
+#include "utils/CryptoUtils.h"
+#include <fmt/core.h>
 #include <string>
+#include <sstream>
 
 using namespace llvm;
 
 namespace llvm {
 
     cl::opt<int> HelloWorldEnable("hello", cl::init(0), cl::desc("Enable the HelloWorld pass"));
+    cl::opt<std::string> RandomSeed("obf-seed", cl::init(""),
+                                    cl::desc("random seed, 32bit hex, 0x is accepted"), cl::Optional);
 
     ObfuscationOptions::ObfuscationOptions(const Twine &FileName) {
         if (sys::fs::exists(FileName)) {
@@ -22,8 +27,13 @@ namespace llvm {
     }
 
     void ObfuscationOptions::loadCommandLineArgs(){
-        if (HelloWorldEnable.hasArgStr()){
+        if (HelloWorldEnable.getNumOccurrences()){
             HelloWorld.enable = HelloWorldEnable;
+        }
+        if (RandomSeed.getNumOccurrences()){
+            crypto->prng_seed(RandomSeed);
+        }else{
+            crypto->prng_seed();
         }
     }
 
@@ -109,6 +119,18 @@ namespace llvm {
 
     void ObfuscationOptions::dump() const {
         dbgs() << "\033[1;31m" << "ObfuscationOptions:\n" << "\033[0m";
+        dbgs() << "\033[1;31m" << "Global:\n" << "\033[0m";
+        std::stringstream seed_hex;
+        auto* seed = (unsigned char*)crypto->get_seed();
+        if (seed){
+            seed_hex << "0x";
+            for (int i = 0; i < 16; i++) {
+                seed_hex << fmt::format("{:02x}", seed[i]);
+            }
+        }else{
+            seed_hex << "Uninitialized";
+        }
+        dbgs() << "\033[1;34m" << "\tRandomSeed: " << "\033[1;36m" << seed_hex.str() << "\n" << "\033[0m";
         dbgs() << "\033[1;31m" << "HelloWorld:\n" << "\033[0m";
         dbgs() << "\033[1;34m" << "\tEnable: " << "\033[1;36m" << HelloWorld.enable << "\n" << "\033[0m";
     }
