@@ -15,30 +15,30 @@ using namespace llvm;
 
 namespace llvm {
 
-    cl::opt<int> HelloWorldEnable("hello", cl::init(0), cl::desc("Enable the HelloWorld pass"));
-    cl::opt<std::string> RandomSeed("obf-seed", cl::init(""),
+    static cl::opt<int> HelloWorldEnable("hello", cl::init(0), cl::desc("Enable the HelloWorld pass"));
+    static cl::opt<std::string> RandomSeed("obf-seed", cl::init(""),
                                     cl::desc("random seed, 32bit hex, 0x is accepted"), cl::Optional);
-    cl::opt<bool> Verbose("obf-verbose", cl::init(false), cl::desc("Print obf log"));
+    static cl::opt<bool> Verbose("obf-verbose", cl::init(false), cl::desc("Print obf log"));
 
     // 函数名混淆
-    cl::opt<int> FuncNameObfEnable("obf-fn", cl::init(0), cl::desc("Enable the FunctionNameObf pass"));
-    cl::opt<std::string> FuncNameObfPrefix("obf-fn-p", cl::init("Buer_"),
+    static cl::opt<int> FuncNameObfEnable("obf-fn", cl::init(0), cl::desc("Enable the FunctionNameObf pass"));
+    static cl::opt<std::string> FuncNameObfPrefix("obf-fn-p", cl::init("Buer_"),
                                           cl::desc("Custom prefix"), cl::Optional);
-    cl::opt<std::string> FuncNameObfSuffix("obf-fn-s", cl::init(""),
+    static cl::opt<std::string> FuncNameObfSuffix("obf-fn-s", cl::init(""),
                                           cl::desc("Custom suffix"), cl::Optional);
-    cl::opt<std::string> FuncNameObfChars("obf-fn-c", cl::init("oO0"),
+    static cl::opt<std::string> FuncNameObfChars("obf-fn-c", cl::init("oO0"),
                                           cl::desc("Custom obf charset"), cl::Optional);
-    cl::opt<int> FuncNameObfLength("obf-fn-l", cl::init(32), cl::desc("Custom length"));
+    static cl::opt<int> FuncNameObfLength("obf-fn-l", cl::init(32), cl::desc("Custom length"));
 
     // 全局变量名混淆
-    cl::opt<int> GVNameObfEnable("obf-gvn", cl::init(0), cl::desc("Enable the GlobalVariableNameObf pass"));
-    cl::opt<std::string> GVNameObfPrefix("obf-gvn-p", cl::init("Buer_"),
+    static cl::opt<int> GVNameObfEnable("obf-gvn", cl::init(0), cl::desc("Enable the GlobalVariableNameObf pass"));
+    static cl::opt<std::string> GVNameObfPrefix("obf-gvn-p", cl::init("Buer_"),
                                            cl::desc("Custom prefix"), cl::Optional);
-    cl::opt<std::string> GVNameObfSuffix("obf-gvn-s", cl::init(""),
+    static cl::opt<std::string> GVNameObfSuffix("obf-gvn-s", cl::init(""),
                                            cl::desc("Custom suffix"), cl::Optional);
-    cl::opt<std::string> GVNameObfChars("obf-gvn-c", cl::init("iIl1"),
+    static cl::opt<std::string> GVNameObfChars("obf-gvn-c", cl::init("iIl1"),
                                           cl::desc("Custom obf charset"), cl::Optional);
-    cl::opt<int> GVNameObfLength("obf-gvn-l", cl::init(32), cl::desc("Custom length"));
+    static cl::opt<int> GVNameObfLength("obf-gvn-l", cl::init(32), cl::desc("Custom length"));
 
 
     ObfuscationOptions::ObfuscationOptions() { // 获取home目录失败才执行
