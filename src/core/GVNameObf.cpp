@@ -27,9 +27,17 @@ PreservedAnalyses GVNameObf::run(Module &M, ModuleAnalysisManager &) const {
 
         StringRef name = GV.getName();
         if (name.startswith("_") || name.contains(".") || name.empty()){
+            IF_VERBOSE2{
+                outs() << fmt::format(fmt::fg(fmt::color::red),
+                                      "GVNameObf: Ignore {}\n", GV.getName().str());
+            }
             continue;
         }
         if (!GV.getSection().empty()){ // 有自定义section的也不混淆
+            IF_VERBOSE2{
+                outs() << fmt::format(fmt::fg(fmt::color::red),
+                                      "GVNameObf: Ignore {}\n", GV.getName().str());
+            }
             continue;
         }
 
