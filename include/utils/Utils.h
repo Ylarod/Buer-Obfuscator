@@ -12,9 +12,9 @@ namespace llvm {
 
     void fixStack(Function &F);
 
-    std::string readAnnotate(Function *f);
+    std::string readAnnotate(GlobalObject *go);
 
-    bool toObfuscate(int flag, Function *f, const std::string& attribute);
+    bool toObfuscate(int flag, GlobalObject *go, const std::string& attribute);
 
     void LowerConstantExpr(Function &F);
 

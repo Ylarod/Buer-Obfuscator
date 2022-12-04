@@ -3,6 +3,7 @@
 #include <llvm/IR/InstIterator.h>
 #include <llvm/IR/IntrinsicInst.h>
 #include <llvm/IR/Intrinsics.h>
+#include <fmt/core.h>
 
 namespace llvm {
 
@@ -46,10 +47,10 @@ namespace llvm {
         }
     }
 
-    std::string readAnnotate(Function *f) {
+    std::string readAnnotate(GlobalObject *go) {
         std::string annotation;
         // Get annotation variable
-        GlobalVariable *glob = f->getParent()->getGlobalVariable("llvm.global.annotations");
+        GlobalVariable *glob = go->getParent()->getGlobalVariable("llvm.global.annotations");
         if (glob == nullptr) {
             return "";
         }
@@ -73,7 +74,7 @@ namespace llvm {
 
             // If it's a bitcast we can check if the annotation is concerning
             // the current function
-            if (expr->getOpcode() != Instruction::BitCast || expr->getOperand(0) != f) {
+            if (expr->getOpcode() != Instruction::BitCast || expr->getOperand(0) != go) {
                 continue;
             }
 
@@ -101,17 +102,17 @@ namespace llvm {
         return annotation;
     }
 
-    bool toObfuscate(int flag, Function *f, const std::string& attribute) {
+    bool toObfuscate(int flag, GlobalObject *go, const std::string& attribute) {
         const std::string& attr = attribute;
         std::string attrNo = "no" + attr;
 
         // Check if declaration
-        if (f->isDeclaration()) {
+        if (go->isDeclaration()) {
             return false;
         }
 
         // Check external linkage
-        if (f->hasAvailableExternallyLinkage() != 0) {
+        if (go->hasAvailableExternallyLinkage() != 0) {
             return false;
         }
 
@@ -119,7 +120,7 @@ namespace llvm {
             return false; // 强制关闭
         }
 
-        std::string annotate = readAnnotate(f);
+        std::string annotate = readAnnotate(go);
         if (annotate.find(attrNo) != std::string::npos) {
             return false;
         }
@@ -133,7 +134,7 @@ namespace llvm {
             return true; // 黑名单模式默认开启
         }
 
-        errs() << "\033[1;31m" << f->getName() << ": flag配置错误\n" << "\033[0m";
+        errs() << "\033[1;31m" << go->getName() << ": flag配置错误\n" << "\033[0m";
         abort();
     }
 
