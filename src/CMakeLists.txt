@@ -1,4 +1,4 @@
-add_library(Obfuscator MODULE # 生成动态库文件
+set(OBFUSCATOR_SOURCES
         Plugin.cpp
         ObfuscationOptions.cpp
 
@@ -9,22 +9,28 @@ add_library(Obfuscator MODULE # 生成动态库文件
         core/FuncNameObf.cpp
         core/GVNameObf.cpp)
 
+if (OBFUSCATOR_IN_TREE_BUILDING)
+    add_llvm_pass_plugin(Obfuscator
+            ${OBFUSCATOR_SOURCES}
+            DEPENDS
+            intrinsics_gen
+            )
+    install(TARGETS fmt DESTINATION lib)
+else()
+    add_library(Obfuscator MODULE # 生成动态库文件
+            ${OBFUSCATOR_SOURCES})
+    target_compile_features(Obfuscator PRIVATE
+            cxx_range_for cxx_auto_type
+            )
+    set_target_properties(Obfuscator PROPERTIES
+            COMPILE_FLAGS "-fno-rtti"
+            )
+endif ()
+
 target_link_libraries(Obfuscator
+        PRIVATE
         fmt)
 
-# Use C++11 to compile your pass (i.e., supply -std=c++11).
-target_compile_features(Obfuscator PRIVATE
-        cxx_range_for cxx_auto_type
-        )
-
-# LLVM is (typically) built with no C++ RTTI. We need to match that;
-# otherwise, we'll get linker errors about missing RTTI data.
-set_target_properties(Obfuscator PROPERTIES
-        COMPILE_FLAGS "-fno-rtti"
-        )
-
-# Get proper shared-library behavior (where symbols are not necessarily
-# resolved when the shared library is linked) on OS X.
 if (APPLE)
     set_target_properties(Obfuscator PROPERTIES
             LINK_FLAGS "-undefined dynamic_lookup"

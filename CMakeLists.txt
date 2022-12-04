@@ -1,42 +1,44 @@
 cmake_minimum_required(VERSION 3.4)
-project(Obfuscator)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+project(BuerObfuscator)
 
 add_subdirectory(external)
 
-if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/env.cmake)
-    message(STATUS "Use LLVM_HOME from env.cmake")
-    include(${CMAKE_CURRENT_SOURCE_DIR}/env.cmake)
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    # Out of tree building
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/env.cmake)
+        message(STATUS "Use LLVM_HOME from env.cmake")
+        include(${CMAKE_CURRENT_SOURCE_DIR}/env.cmake)
+    endif ()
+
+    # we need LLVM_HOME in order not automatically set LLVM_DIR
+    if (NOT DEFINED ENV{LLVM_HOME})
+        message(FATAL_ERROR "$LLVM_HOME is not defined")
+    else ()
+        set(ENV{LLVM_DIR} $ENV{LLVM_HOME}/lib64/cmake/llvm)
+    endif ()
+
+    find_package(LLVM REQUIRED CONFIG)
+    add_definitions(${LLVM_DEFINITIONS})
+    include_directories(${LLVM_INCLUDE_DIRS})
+    link_directories(${LLVM_LIBRARY_DIRS})
+    if (${LLVM_VERSION_MAJOR} VERSION_GREATER_EQUAL 10)
+        set(CMAKE_CXX_STANDARD 14)
+    endif ()
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    include_directories($ENV{LLVM_HOME}/include/c++v1)
+    set(CMAKE_SKIP_RPATH ON)
+
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/out")
+else()
+    set(OBFUSCATOR_IN_TREE_BUILDING ON)
 endif ()
-
-# we need LLVM_HOME in order not automatically set LLVM_DIR
-if (NOT DEFINED ENV{LLVM_HOME})
-    message(FATAL_ERROR "$LLVM_HOME is not defined")
-else ()
-    set(ENV{LLVM_DIR} $ENV{LLVM_HOME}/lib64/cmake/llvm)
-endif ()
-
-find_package(LLVM REQUIRED CONFIG)
-add_definitions(${LLVM_DEFINITIONS})
-include_directories(${LLVM_INCLUDE_DIRS})
-link_directories(${LLVM_LIBRARY_DIRS})
-if (${LLVM_VERSION_MAJOR} VERSION_GREATER_EQUAL 10)
-    set(CMAKE_CXX_STANDARD 14)
-endif ()
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-include_directories($ENV{LLVM_HOME}/include/c++v1)
-set(CMAKE_SKIP_RPATH ON)
-
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/out")
-
-include_directories(include)
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     add_definitions("-DDEBUG_MODE")
 endif ()
-
 
 set(COMMIT_HASH "")
 set(COMMIT_VERSION "")
@@ -76,5 +78,5 @@ configure_file(
         @ONLY
 )
 
-include_directories(${CMAKE_BINARY_DIR}/generated)
+include_directories(include ${CMAKE_BINARY_DIR}/generated)
 add_subdirectory(src)
