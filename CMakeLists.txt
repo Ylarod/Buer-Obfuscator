@@ -3,6 +3,8 @@ project(Obfuscator)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_subdirectory(external)
+
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/env.cmake)
     message(STATUS "Use LLVM_HOME from env.cmake")
     include(${CMAKE_CURRENT_SOURCE_DIR}/env.cmake)
@@ -75,32 +77,4 @@ configure_file(
 )
 
 include_directories(${CMAKE_BINARY_DIR}/generated)
-
-add_library(Obfuscator MODULE # 生成动态库文件
-        src/Plugin.cpp
-        src/ObfuscationOptions.cpp
-
-        src/utils/CryptoUtils.cpp
-        src/utils/Utils.cpp
-
-        src/core/HelloWorld.cpp
-        )
-
-# Use C++11 to compile your pass (i.e., supply -std=c++11).
-target_compile_features(Obfuscator PRIVATE
-        cxx_range_for cxx_auto_type
-        )
-
-# LLVM is (typically) built with no C++ RTTI. We need to match that;
-# otherwise, we'll get linker errors about missing RTTI data.
-set_target_properties(Obfuscator PROPERTIES
-        COMPILE_FLAGS "-fno-rtti"
-        )
-
-# Get proper shared-library behavior (where symbols are not necessarily
-# resolved when the shared library is linked) on OS X.
-if (APPLE)
-    set_target_properties(Obfuscator PROPERTIES
-            LINK_FLAGS "-undefined dynamic_lookup"
-            )
-endif (APPLE)
+add_subdirectory(src)
