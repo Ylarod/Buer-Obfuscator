@@ -220,7 +220,6 @@ void CryptoUtils::prng_seed() {
 #else
     std::ifstream devrandom("/dev/random");
 #endif
-
     if (devrandom) {
         devrandom.read(key, 16);
 
@@ -242,6 +241,7 @@ void CryptoUtils::prng_seed() {
     } else {
         errs() << Twine("Cannot open /dev/random");
     }
+    populate_pool();
 }
 
 void CryptoUtils::inc_ctr() {
@@ -275,7 +275,6 @@ void CryptoUtils::get_bytes(char *buffer, const int len) {
         // If the PRNG is not seeded, it the very last time to do it !
         if (!seeded) {
             prng_seed();
-            populate_pool();
         }
 
         do {
