@@ -25,8 +25,6 @@ PreservedAnalyses FuncNameObf::run(Module &M, ModuleAnalysisManager &) const {
             continue;
         }
 
-
-
         std::stringstream ss;
         ss << config.prefix;
         uint32_t range = config.charset.length();

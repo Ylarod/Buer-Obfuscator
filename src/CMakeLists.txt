@@ -7,7 +7,9 @@ set(OBFUSCATOR_SOURCES
 
         core/HelloWorld.cpp
         core/FuncNameObf.cpp
-        core/GVNameObf.cpp)
+        core/GVNameObf.cpp
+        core/FunctionWrapper.cpp
+        )
 
 if (OBFUSCATOR_IN_TREE_BUILDING)
 #    set(LLVM_OBFUSCATOR_LINK_INTO_TOOLS ON)

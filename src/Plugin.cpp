@@ -7,6 +7,7 @@
 #include "core/HelloWorld.h"
 #include "core/FuncNameObf.h"
 #include "core/GVNameObf.h"
+#include "core/FunctionWrapper.h"
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Path.h>
@@ -52,6 +53,7 @@ void obfuscatePluginCallback(llvm::ModulePassManager &PM,
     PM.addPass(HelloWorld(Options->HelloWorld.enable));
     PM.addPass(FuncNameObf(Options));
     PM.addPass(GVNameObf(Options));
+    PM.addPass(FunctionWrapper(Options));
 }
 
 /* New PM Registration for static plugin */
