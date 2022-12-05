@@ -305,8 +305,14 @@ namespace llvm {
         echo_config("Charset", "{}", GVNameObf.charset);
         echo_config("Length", "{}", GVNameObf.length);
 
+        echo_pass("FunctionWrapper");
+        echo_enable(FunctionWrapper.enable);
+        echo_config("Prob", "{}", FunctionWrapper.prob);
+        echo_config("Times", "{}", FunctionWrapper.times);
+
 #undef echo_pass
 #undef echo_config
+#undef enable_value
 #undef echo_enable
     }
 
