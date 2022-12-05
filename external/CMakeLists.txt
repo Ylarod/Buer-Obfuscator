@@ -1,1 +1,7 @@
+macro(SET_OPTION option value)
+    set(${option} ${value} CACHE INTERNAL "" FORCE)
+endmacro()
+if (OBFUSCATOR_IN_TREE_BUILDING)
+    SET_OPTION(FMT_INSTALL ON)
+endif ()
 add_subdirectory(fmt)

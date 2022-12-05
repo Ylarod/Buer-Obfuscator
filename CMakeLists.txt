@@ -1,9 +1,15 @@
 cmake_minimum_required(VERSION 3.4)
 project(BuerObfuscator)
 
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(OBFUSCATOR_IN_TREE_BUILDING OFF)
+else()
+    set(OBFUSCATOR_IN_TREE_BUILDING ON)
+endif ()
+
 add_subdirectory(external)
 
-if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+if(NOT OBFUSCATOR_IN_TREE_BUILDING)
     # Out of tree building
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -32,9 +38,7 @@ if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(CMAKE_SKIP_RPATH ON)
 
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/out")
-else()
-    set(OBFUSCATOR_IN_TREE_BUILDING ON)
-endif ()
+endif()
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     add_definitions("-DDEBUG_MODE")

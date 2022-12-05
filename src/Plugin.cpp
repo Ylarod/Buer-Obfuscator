@@ -55,7 +55,7 @@ void obfuscatePluginCallback(llvm::ModulePassManager &PM,
 }
 
 /* New PM Registration for static plugin */
-llvm::PassPluginLibraryInfo getLLVMObfuscationPluginInfo() {
+llvm::PassPluginLibraryInfo getObfuscatorPluginInfo() {
     return {LLVM_PLUGIN_API_VERSION, "Buer", obf_version_name,
             [](PassBuilder &PB) {
                 dbgs() << "\033[1;35m" << "Buer Obfuscator v" << obf_version_name << "\n" << "\033[0m";
@@ -65,10 +65,9 @@ llvm::PassPluginLibraryInfo getLLVMObfuscationPluginInfo() {
 
 
 /* New PM Registration for dynamic plugin */
-
-#ifndef LLVM_LLVMOBFUSCATION_LINK_INTO_TOOLS
+#ifndef LLVM_OBFUSCATOR_LINK_INTO_TOOLS
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
 llvmGetPassPluginInfo() {
-    return getLLVMObfuscationPluginInfo();
+    return getObfuscatorPluginInfo();
 }
 #endif

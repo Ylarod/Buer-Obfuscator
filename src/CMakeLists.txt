@@ -10,12 +10,14 @@ set(OBFUSCATOR_SOURCES
         core/GVNameObf.cpp)
 
 if (OBFUSCATOR_IN_TREE_BUILDING)
+#    set(LLVM_OBFUSCATOR_LINK_INTO_TOOLS ON)
+    install(TARGETS fmt EXPORT LLVMExports)
     add_llvm_pass_plugin(Obfuscator
             ${OBFUSCATOR_SOURCES}
             DEPENDS
             intrinsics_gen
+            BUILDTREE_ONLY
             )
-    install(TARGETS fmt DESTINATION lib)
 else()
     add_library(Obfuscator MODULE # 生成动态库文件
             ${OBFUSCATOR_SOURCES})
